@@ -1,2221 +1,1116 @@
-Q.) Problem Statement 1: Spring Boot MVC Application 
-Develop a Spring Boot MVC application for managing Library Book Management. 
-The application should: 
-Provide a form to add book details (Book ID, Book Name, Author, Price). 
-Store the data in a database using any one of the following: JDBC / Hibernate / JPA. 
-Display the list of all books. 
-Provide a feature to search book details by Book ID. 
-Use Controller, Service (optional), DAO/Repository, and Thymeleaf/JSP views. 
-Follow proper MVC architecture. 
-Solution:- 
-Using JPA:- 
-Structure:- 
-LibraryBookManagement/ 
-├── src/ 
-│   ├── main/ 
-│   │   ├── java/ 
-│   │   │   └── com/example/demo/ 
-│   │   │       ├── Book.java                    
-(Entity) 
-│   │   │       ├── BookRepository.java          
-│   │   │       ├── BookController.java          
-(Repository) 
-(Controller) 
-│   │   │       └── LibraryBookManagementApplication.java 
-│   │   └── resources/      
-├── static/ 
-├── templates/ 
-│   ├── addbook.html                 
-│   ├── books.html                   
-│   └── search.html                  
-└── application.properties 
-│   └── test/ 
-├── pom.xml 
-Book.java:- 
-package com.example.demo; 
-(Add Book Form) 
-(Display All Books) 
-(Search Book) 
-import jakarta.persistence.Entity; 
-import jakarta.persistence.Id; 
-@Entity 
-public class Book { 
-    @Id 
-    private int bookId; 
-    private String bookName; 
-    private String author; 
-    private double price; 
-    public Book() { 
-    } 
-    public Book(int bookId, String bookName, String author, double price) { 
-        this.bookId = bookId; 
-        this.bookName = bookName; 
-        this.author = author; 
-        this.price = price; 
-    } 
-    public int getBookId() { 
-        return bookId; 
-    } 
-    public void setBookId(int bookId) { 
-        this.bookId = bookId; 
-    } 
-    public String getBookName() { 
-        return bookName; 
-    } 
-    public void setBookName(String bookName) { 
-        this.bookName = bookName; 
-    } 
-    public String getAuthor() { 
-        return author; 
-    } 
-    public void setAuthor(String author) { 
-        this.author = author; 
-    } 
-    public double getPrice() { 
-        return price; 
-    } 
-    public void setPrice(double price) { 
-        this.price = price; 
-    } 
-} 
- 
-BookController.java:- 
-package com.example.demo; 
-import org.springframework.stereotype.Controller; 
-import org.springframework.ui.Model; 
-import org.springframework.web.bind.annotation.GetMapping; 
-import org.springframework.web.bind.annotation.PostMapping; 
-import org.springframework.web.bind.annotation.RequestParam; 
-import org.springframework.web.bind.annotation.ModelAttribute; 
-import java.util.Optional; 
-@Controller 
-public class BookController { 
-    private final BookRepository bookRepository; 
-    public BookController(BookRepository bookRepository) { 
-        this.bookRepository = bookRepository; 
-    } 
-    // Show the add book form 
-    @GetMapping("/addbook") 
-    public String showAddBookForm(Model model) { 
-        model.addAttribute("book", new Book()); 
-        return "addbook"; 
-    } 
-    // Add a new book 
-    @PostMapping("/addbook") 
-    public String addBook(@ModelAttribute Book book, Model model) { 
-        bookRepository.save(book); 
-        model.addAttribute("message", "Book added successfully!"); 
-        model.addAttribute("books", bookRepository.findAll()); 
-        return "books"; 
-    } 
-    // Display all books 
-    @GetMapping("/books") 
-    public String showAllBooks(Model model) { 
-        model.addAttribute("books", bookRepository.findAll()); 
-        return "books"; 
-    } 
-    // Show search form 
-    @GetMapping("/search") 
-    public String showSearchForm() { 
-        return "search"; 
-    } 
-    // Search book by ID 
-    @PostMapping("/search") 
-    public String searchBook(@RequestParam("bookId") int bookId, Model model) { 
-        Optional<Book> book = bookRepository.findById(bookId);     
-        if (book.isPresent()) { 
-            model.addAttribute("book", book.get()); 
-            model.addAttribute("found", true); 
-        } else { 
-            model.addAttribute("found", false); 
-            model.addAttribute("message", "Book with ID " + bookId + " not found!"); 
-        } 
-return "search"; 
-} 
-} 
-BookRepository.java:- 
-package com.example.demo; 
-import org.springframework.data.jpa.repository.JpaRepository; 
-public interface BookRepository extends JpaRepository<Book, Integer> { 
-} 
-LibraryBookManagementApplication.java = It would be inbuilt provided there it starts the 
-project 
-addbook.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-<title>Add Book</title> 
-</head> 
-<body> 
-<h2>Add Book</h2> 
-<a th:href="@{/books}">View All Books</a> 
-<br><br> 
-<form th:action="@{/addbook}" th:object="${book}" method="post"> 
-<label>Book ID:</label> 
-<input type="number" th:field="*{bookId}" /><br><br> 
-<label>Book Name:</label> 
-<input type="text" th:field="*{bookName}" /><br><br> 
-<label>Author:</label> 
-<input type="text" th:field="*{author}" /><br><br> 
-<label>Price:</label> 
-    <input type="number" step="0.01" th:field="*{price}" /><br><br> 
-    <button type="submit">Add Book</button> 
-</form> 
-</body> 
-</html> 
- 
-books.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-    <title>All Books</title> 
-</head> 
-<body> 
-<h2>Library Book Management - All Books</h2> 
-<div class="nav-links"> 
-    <a th:href="@{/addbook}">Add New Book</a> 
-    <a th:href="@{/search}">Search Book</a> 
-</div> 
-<div th:if="${message}"> 
-    <p th:text="${message}"></p> 
-</div> 
-<table th:if="${books != null and !books.isEmpty()}"> 
-    <tr> 
-        <th>Book ID</th> 
-        <th>Book Name</th> 
-        <th>Author</th> 
-        <th>Price</th> 
-    </tr> 
-    <tr th:each="b : ${books}"> 
-        <td th:text="${b.bookId}"></td> 
-        <td th:text="${b.bookName}"></td> 
-<td th:text="${b.author}"></td> 
-<td th:text="'₹' + ${b.price}"></td> 
-</tr> 
-</table> 
-<div th:if="${books == null or books.isEmpty()}"> 
-<p>No books available in the library.</p> 
-<a th:href="@{/addbook}">Add your first book</a> 
-</div> 
-</body> 
-</html> 
-search.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-<title>Search Book</title> 
-</head> 
-<body> 
-<h2>Library Book Management - Search Book</h2> 
-<div class="nav-links"> 
-<a th:href="@{/addbook}">Add New Book</a> 
-<a th:href="@{/books}">View All Books</a> 
-</div> 
-<div class="search-form"> 
-<form th:action="@{/search}" method="post"> 
-<label>Enter Book ID:</label> 
-<input type="number" name="bookId" required /> 
-<button type="submit">Search</button> 
-</form> 
-</div> 
-<div th:if="${found != null}"> 
-<div th:if="${found}"> 
-<h3>Book Found!</h3> 
-<p>Book ID: <span th:text="${book.bookId}"></span></p> 
-<p>Book Name: <span th:text="${book.bookName}"></span></p> 
-<p>Author: <span th:text="${book.author}"></span></p> 
-<p>Price: <span th:text="'₹' + ${book.price}"></span></p> 
-</div> 
-<div th:if="${!found}"> 
-<p th:text="${message}"></p> 
-</div> 
-</div> 
-</body> 
-</html> 
-application.properties:- 
-spring.application.name=LibraryBookManagement 
-# Database Configuration 
-spring.datasource.url=jdbc:mysql://localhost:3306/library_db 
-spring.datasource.username=root 
-spring.datasource.password=satyamsp 
-# JPA/Hibernate Configuration 
-spring.jpa.hibernate.ddl-auto=update 
-spring.jpa.show-sql=true 
-spring.jpa.properties.hibernate.format_sql=true 
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect 
-# Thymeleaf Configuration 
-spring.thymeleaf.cache=false 
-pom.xml:- 
-project xmlns="http://maven.apache.org/POM/4.0.0"  
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0  
-         https://maven.apache.org/xsd/maven-4.0.0.xsd"> 
-    <modelVersion>4.0.0</modelVersion> 
-    <parent> 
-        <groupId>org.springframework.boot</groupId> 
-        <artifactId>spring-boot-starter-parent</artifactId> 
-        <version>4.0.1</version> 
-        <relativePath/> <!-- lookup parent from repository --> 
-    </parent> 
-    <groupId>com.example</groupId> 
-    <artifactId>LibraryBookManagement</artifactId> 
-    <version>0.0.1-SNAPSHOT</version> 
-    <name>LibraryBookManagement</name> 
-    <description>Spring Boot MVC application for Library Book Management</description> 
-    <properties> 
-        <java.version>17</java.version> 
-    </properties> 
-    <dependencies> 
-        <!-- Spring Boot Web MVC --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-webmvc</artifactId> 
-        </dependency> 
-        <!-- Spring Boot Data JPA --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-data-jpa</artifactId> 
-        </dependency> 
-        <!-- Thymeleaf Template Engine --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-thymeleaf</artifactId> 
-        </dependency> 
-        <!-- JDBC --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-jdbc</artifactId> 
-        </dependency> 
-        <!-- MySQL Driver --> 
-        <dependency> 
-            <groupId>com.mysql</groupId> 
-            <artifactId>mysql-connector-j</artifactId> 
-            <scope>runtime</scope> 
-        </dependency> 
-        <!-- Spring Boot DevTools (Optional - for hot reload) --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-devtools</artifactId> 
-            <scope>runtime</scope> 
-            <optional>true</optional> 
-        </dependency> 
-        <!-- Test Dependencies --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-test</artifactId> 
-            <scope>test</scope> 
-        </dependency> 
-    </dependencies> 
-    <build> 
-        <plugins> 
-            <plugin> 
-                <groupId>org.springframework.boot</groupId> 
-                <artifactId>spring-boot-maven-plugin</artifactId> 
-            </plugin> 
-        </plugins> 
-    </build> 
-</project> ----------------------------------------------------using jdbc-------------------------------------------------------------- 
-Spring Boot MVC application for Library Book Management using JDBC (JdbcTemplate) 
-Book.java:- 
-package com.example.demo; 
-public class Book { 
-    private int bookId; 
-    private String bookName; 
-    private String author; 
-    private double price; 
-    public Book() { 
-    } 
-    public Book(int bookId, String bookName, String author, double price) { 
-        this.bookId = bookId; 
-        this.bookName = bookName; 
-        this.author = author; 
-        this.price = price; 
-    } 
-    public int getBookId() { 
-        return bookId; 
-    } 
-    public void setBookId(int bookId) { 
-        this.bookId = bookId; 
-    } 
-    public String getBookName() { 
-        return bookName; 
-    } 
-    public void setBookName(String bookName) { 
-        this.bookName = bookName; 
-    } 
-    public String getAuthor() { 
-        return author; 
-    } 
-    public void setAuthor(String author) { 
-        this.author = author; 
-    } 
-    public double getPrice() { 
-        return price; 
-    } 
-    public void setPrice(double price) { 
-        this.price = price; 
-    } 
-    @Override 
-    public String toString() { 
-        return "Book [bookId=" + bookId + ", bookName=" + bookName +  
-               ", author=" + author + ", price=" + price + "]"; 
-    } 
-} 
- 
-BookController.java:- 
-package com.example.demo; 
-import org.springframework.stereotype.Controller; 
-import org.springframework.ui.Model; 
-import org.springframework.web.bind.annotation.GetMapping; 
-import org.springframework.web.bind.annotation.ModelAttribute; 
-import org.springframework.web.bind.annotation.PostMapping; 
-import org.springframework.web.bind.annotation.RequestParam; 
- 
-import java.util.List; 
-@Controller 
-public class BookController { 
-    private final BookDAO bookDAO; 
-    public BookController(BookDAO bookDAO) { 
-        this.bookDAO = bookDAO; 
-    } 
-    // Show add book form 
-    @GetMapping("/addbook") 
-    public String showAddBookForm(Model model) { 
-        model.addAttribute("book", new Book()); 
-        return "addbook"; 
-    } 
-    // Add new book 
-    @PostMapping("/addbook") 
-    public String addBook(@ModelAttribute Book book, Model model) { 
-        bookDAO.save(book); 
-        model.addAttribute("message", "Book added successfully!"); 
-        model.addAttribute("books", bookDAO.findAll()); 
-        return "books"; 
-    } 
-    // Display all books 
-    @GetMapping("/books") 
-    public String showAllBooks(Model model) { 
-        List<Book> books = bookDAO.findAll(); 
-        model.addAttribute("books", books); 
-        return "books"; 
-    } 
-    // Show search form 
-    @GetMapping("/search") 
-    public String showSearchForm() { 
-        return "search"; 
-    } 
-    // Search book by ID 
-    @PostMapping("/search") 
-    public String searchBook(@RequestParam("bookId") int bookId, Model model) { 
-        Book book = bookDAO.findById(bookId); 
-        if (book != null) { 
-            model.addAttribute("book", book); 
-            model.addAttribute("found", true); 
-        } else { 
-            model.addAttribute("found", false); 
-            model.addAttribute("message", "Book with ID " + bookId + " not found!"); 
-        } 
-        return "search"; 
-    } 
-    // Home page - redirect to add book 
-    @GetMapping("/") 
-    public String home() { 
-        return "redirect:/addbook"; 
-    } 
-} 
- 
-addbook.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-    <title>Add Book</title> 
-</head> 
-<body> 
-<div class="container"> 
-    <h2 style="text-align: center;">Library Book Management</h2> 
-    <h3 style="text-align: center; color: #666;">Add New Book</h3> 
-    <div class="nav-links"> 
-        <a th:href="@{/books}">View All Books</a> 
-        <a th:href="@{/search}">Search Book</a> 
-    </div> 
-    <form th:action="@{/addbook}" th:object="${book}" method="post"> 
-        <label>Book ID:</label> 
-        <input type="number" th:field="*{bookId}" required placeholder="Enter book ID" /> 
-        <label>Book Name:</label> 
-        <input type="text" th:field="*{bookName}" required placeholder="Enter book name" /> 
-        <label>Author:</label> 
-        <input type="text" th:field="*{author}" required placeholder="Enter author name" /> 
-        <label>Price (₹):</label> 
-        <input type="number" step="0.01" th:field="*{price}" required placeholder="Enter price" /> 
-        <button type="submit">Add Book</button> 
-    </form> 
-</div> 
-</body> 
-</html> 
-books.html 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-    <title>All Books</title> 
-</head> 
-<body> 
-<div class="container"> 
-    <h2>Library Book Management - All Books</h2> 
-    <div class="nav-links"> 
-        <a th:href="@{/addbook}">Add New Book</a> 
-        <a th:href="@{/search}">Search Book</a> 
-    </div> 
-    <div th:if="${message}" class="message"> 
-        <p th:text="${message}"></p> 
-    </div> 
-    <table th:if="${books != null and !books.isEmpty()}"> 
-        <thead> 
-            <tr> 
-                <th>Book ID</th> 
-                <th>Book Name</th> 
-                <th>Author</th> 
-                <th>Price (₹)</th> 
-            </tr> 
-        </thead> 
-        <tbody> 
-            <tr th:each="book : ${books}"> 
-                <td th:text="${book.bookId}"></td> 
-                <td th:text="${book.bookName}"></td> 
-                <td th:text="${book.author}"></td> 
-                <td th:text="${book.price}"></td> 
-            </tr> 
-        </tbody> 
-    </table> 
-    <div th:if="${books == null or books.isEmpty()}" class="no-books"> 
-        <h3>No books available in the library</h3> 
-        <p>Start by adding your first book!</p> 
-        <a th:href="@{/addbook}">Add Book Now</a> 
-    </div> 
-</div> 
-</body> 
-</html> 
- 
-search.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-    <title>Search Book</title> 
-</head> 
-<body> 
-<div class="container"> 
-    <h2>Library Book Management - Search Book</h2> 
-    <div class="nav-links"> 
-        <a th:href="@{/addbook}">Add New Book</a> 
-        <a th:href="@{/books}">View All Books</a> 
-    </div> 
-    <div class="search-form"> 
-        <form th:action="@{/search}" method="post"> 
-            <label>Enter Book ID:</label> 
-            <input type="number" name="bookId" required placeholder="Enter book ID to search" /> 
-            <button type="submit">Search Book</button> 
-        </form> 
-    </div> 
-    <!-- Display search results --> 
-    <div th:if="${found != null}"> 
-        <div th:if="${found}" class="result"> 
-            <h3>✓ Book Found!</h3> 
-            <div class="book-details"> 
-                <p><strong>Book ID:</strong> <span th:text="${book.bookId}"></span></p> 
-                <p><strong>Book Name:</strong> <span th:text="${book.bookName}"></span></p> 
-                <p><strong>Author:</strong> <span th:text="${book.author}"></span></p> 
-                <p><strong>Price:</strong> ₹<span th:text="${book.price}"></span></p> 
-            </div> 
-        </div> 
-<div th:if="${!found}" class="error"> 
-<p th:text="${message}"></p> 
-</div> 
-</div> 
-</div> 
-</body> 
-</html> 
-application.properties:- 
-spring.application.name=LibraryBookManagement-JDBC 
-# Database Configuration 
-spring.datasource.url=jdbc:mysql://localhost:3306/library_db 
-spring.datasource.username=root 
-spring.datasource.password=satyamsp 
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver 
-# Thymeleaf Configuration 
-spring.thymeleaf.cache=false 
-spring.thymeleaf.prefix=classpath:/templates/ 
-spring.thymeleaf.suffix=.html 
-# Server Configuration 
-server.port=8080 
-pom.xml:- 
-<?xml version="1.0" encoding="UTF-8"?> 
-<project xmlns="http://maven.apache.org/POM/4.0.0"  
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-xsi:schemaLocation="http://maven.apache.org/POM/4.0.0  
-https://maven.apache.org/xsd/maven-4.0.0.xsd"> 
-<modelVersion>4.0.0</modelVersion> 
-<parent> 
-<groupId>org.springframework.boot</groupId> 
-        <artifactId>spring-boot-starter-parent</artifactId> 
-        <version>4.0.1</version> 
-        <relativePath/> 
-    </parent> 
-    <groupId>com.example</groupId> 
-    <artifactId>LibraryBookManagement-JDBC</artifactId> 
-    <version>0.0.1-SNAPSHOT</version> 
-    <name>LibraryBookManagement-JDBC</name> 
-    <description>Spring Boot MVC with JDBC for Library Book Management</description> 
-    <properties> 
-        <java.version>17</java.version> 
-    </properties> 
-    <dependencies> 
-        <!-- Spring Boot Web (MVC) --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-webmvc</artifactId> 
-        </dependency> 
-        <!-- Thymeleaf Template Engine --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-thymeleaf</artifactId> 
-        </dependency> 
-        <!-- Spring JDBC (JdbcTemplate) --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-jdbc</artifactId> 
-        </dependency> 
-        <!-- MySQL JDBC Driver --> 
-        <dependency> 
-            <groupId>com.mysql</groupId> 
-            <artifactId>mysql-connector-j</artifactId> 
-            <scope>runtime</scope> 
-        </dependency> 
-        <!-- Spring Boot DevTools (Optional - for hot reload) --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-devtools</artifactId> 
-            <scope>runtime</scope> 
-            <optional>true</optional> 
-        </dependency> 
-        <!-- Test Dependencies --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-test</artifactId> 
-            <scope>test</scope> 
-        </dependency> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-thymeleaf-test</artifactId> 
-            <scope>test</scope> 
-        </dependency> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-webmvc-test</artifactId> 
-            <scope>test</scope> 
-        </dependency> 
-    </dependencies> 
-    <build> 
-        <plugins> 
-            <plugin> 
-                <groupId>org.springframework.boot</groupId> 
-                <artifactId>spring-boot-maven-plugin</artifactId> 
-            </plugin> 
-        </plugins> 
-    </build> 
-</project> 
-Full explaination for above:- 
- 
-Feature JDBC (This Project) Hibernate Spring Data JPA 
-Configuration JdbcTemplate SessionFactory EntityManager 
-Entity Class Plain POJO POJO + annotations POJO + annotations 
-DAO/Repository BookDAO class DAO with Session JpaRepository interface 
-SQL Queries Manual SQL HQL or manual SQL Auto-generated 
-Mapping RowMapper Automatic Automatic 
-CRUD Code Full implementation Full implementation Just interface 
-Learning Curve Easy Medium Easy 
-Performance Fast Medium Medium 
-Control High Medium Low 
-Boilerplate High Medium Low 
- 
-  Key Components Explanation 
-1️⃣ Book.java - Plain POJO (Model) 
-java 
-public class Book { 
-    private int bookId; 
-    private String bookName; 
-    private String author; 
-    private double price; 
-    // Constructors, Getters, Setters 
-} 
-❌ NO @Entity annotation (not using JPA) 
-❌ NO @Id annotation (not using JPA) 
-✅ Plain Java class with getters/setters 
- 
-2️⃣ BookDAO.java - Data Access Object 
-java 
-@Repository 
-public class BookDAO { 
-    private final JdbcTemplate jdbcTemplate; 
-     
-    public void save(Book book) { 
-String sql = "INSERT INTO book VALUES (?, ?, ?, ?)"; 
-jdbcTemplate.update(sql, ...); 
-} 
-public List<Book> findAll() { 
-String sql = "SELECT * FROM book"; 
-return jdbcTemplate.query(sql, new RowMapper<Book>() { 
-public Book mapRow(ResultSet rs, int rowNum) { 
-return new Book(...); 
-} 
-}); 
-} 
-public Book findById(int bookId) { 
-String sql = "SELECT * FROM book WHERE book_id = ?"; 
-return jdbcTemplate.queryForObject(sql, ...); 
-} 
-} 
-Key Features: 
-Uses JdbcTemplate (Spring's JDBC wrapper) 
-Manual SQL queries (INSERT, SELECT, UPDATE, DELETE) 
-RowMapper to convert ResultSet to Book objects 
-@Repository annotation for Spring to detect 
-3
-️⃣ BookController.java - Spring MVC Controller 
-java 
-@Controller 
-public class BookController { 
-private final BookDAO bookDAO; 
-@GetMapping("/addbook") 
-public String showAddBookForm(Model model) { ... } 
-@PostMapping("/addbook") 
-public String addBook(@ModelAttribute Book book, Model model) { 
-bookDAO.save(book); 
-return "books"; 
-} 
-@GetMapping("/books") 
-public String showAllBooks(Model model) { ... } 
-@PostMapping("/search") 
-public String searchBook(@RequestParam("bookId") int bookId) { ... } 
-} 
-Key Features: 
-@Controller for Spring MVC 
-@GetMapping and @PostMapping for HTTP methods 
-Model object to pass data to views 
-Calls BookDAO methods for database operations 
-4
-️⃣ Thymeleaf Views 
-addbook.html - Form with th:object and th:field 
-books.html - Table with th:each loop 
-search.html - Search form and conditional display 
-Database Setup 
-Step 1: Create Database and Table 
-sql -- Create database 
-CREATE DATABASE library_db; 
-USE library_db; -- Create table 
-CREATE TABLE book ( 
-book_id INT PRIMARY KEY, 
-book_name VARCHAR(200) NOT NULL, 
-author VARCHAR(100) NOT NULL, 
-price DOUBLE NOT NULL 
-); -- Insert sample data (optional) 
-INSERT INTO book VALUES (101, 'Java Programming', 'James Gosling', 599.00); 
-INSERT INTO book VALUES (102, 'Python Basics', 'Guido van Rossum', 499.00); 
-INSERT INTO book VALUES (103, 'Web Development', 'Tim Berners-Lee', 799.00); 
-Step 2: Update application.properties 
-properties 
-spring.datasource.url=jdbc:mysql://localhost:3306/library_db 
-spring.datasource.username=root 
-spring.datasource.password=your_password 
-How to Run 
-Prerequisites 
-JDK 17 or higher 
-MySQL Server 8.0+ 
-Maven 3.6+ 
-IDE (Eclipse/IntelliJ/VS Code) 
-Steps 
-Create Database 
-sql 
-CREATE DATABASE library_db; 
-Update Password in application.properties 
-Run the Application 
-bash 
-mvn clean install 
-mvn spring-boot:run 
-Access the Application 
-Open browser: http://localhost:8080 
-Or directly: http://localhost:8080/addbook 
-Application URLs 
-URL | Method | Description 
-/ | GET | Redirects to /addbook 
-/addbook | GET | Display add book form 
-/addbook | POST | Submit new book data 
-/books | GET | Display all books 
-/search | GET | Display search form 
-/search | POST | Search book by ID 
-Exam Questions & Answers 
-Q1: What database technology is used in this application? 
-Answer: 
-Spring JDBC with JdbcTemplate 
-NOT Hibernate 
-NOT JPA 
-NOT Spring Data JPA Repository 
-Q2: Explain the role of JdbcTemplate in this application. 
-Answer: 
-JdbcTemplate is Spring's JDBC wrapper that: 
-Simplifies JDBC operations 
-Eliminates boilerplate code 
-Handles connection management automatically 
-Provides methods like: 
-update() for INSERT/UPDATE/DELETE 
-query() for SELECT with multiple rows 
-queryForObject() for SELECT with single row 
-No need to manually open/close connections 
-Example: 
-java 
-jdbcTemplate.update("INSERT INTO book VALUES (?, ?, ?, ?)", 
-book.getBookId(), book.getBookName(), ...); 
-Q3: What is RowMapper and why is it used? 
-Answer: 
-RowMapper is an interface used to map database ResultSet rows to Java objects. 
-Purpose: 
-Converts each row from ResultSet into a Book object 
-Called for each row returned by the query 
-Example: 
-java 
-return jdbcTemplate.query(sql, new RowMapper<Book>() { 
-public Book mapRow(ResultSet rs, int rowNum) throws SQLException { 
-return new Book( 
-rs.getInt("book_id"), 
-rs.getString("book_name"), 
-rs.getString("author"), 
-rs.getDouble("price") 
-); 
-} 
-}); 
-Q4: Why doesn't Book.java have @Entity and @Id annotations? 
-Answer: 
-Because we're using JDBC (not JPA/Hibernate): 
-@Entity and @Id are JPA annotations 
-JDBC uses plain POJOs without any annotations 
-Mapping is done manually through RowMapper 
-No ORM framework involved 
-Q5: What is the difference between this JDBC application and a JPA/Hibernate application? 
-Aspect | JDBC (This Project) | JPA/Hibernate 
-Entity Class | Plain POJO | @Entity, @Id annotations 
-DAO/Repository | BookDAO with JdbcTemplate | JpaRepository interface 
-SQL Queries | Manual SQL | Auto-generated by Hibernate 
-Mapping | RowMapper | Automatic via annotations 
-Configuration | JdbcTemplate bean | SessionFactory/EntityManager 
-Boilerplate | More code | Less code 
-Control | Full control over SQL | Framework generates SQL 
-Q6: What design pattern is used for database operations? 
-Answer: DAO (Data Access Object) Pattern 
-Components: 
-BookDAO class encapsulates all database logic 
-Controller doesn't interact with database directly 
-Separation of concerns (Controller → DAO → Database) 
-Q7: Write the SQL query to create the book table. 
-sql 
-CREATE TABLE book ( 
-book_id INT PRIMARY KEY, 
-book_name VARCHAR(200) NOT NULL, 
-author VARCHAR(100) NOT NULL, 
-price DOUBLE NOT NULL 
-); 
-Q8: What Maven dependency enables JDBC functionality? 
-xml 
-<dependency> 
-<groupId>org.springframework.boot</groupId> 
-<artifactId>spring-boot-starter-jdbc</artifactId> 
-</dependency> 
-Q9: How does the search functionality work? 
-Answer: 
-User enters book ID in search form 
-Form submits POST request to /search 
-Controller receives bookId parameter 
-Calls bookDAO.findById(bookId) 
-DAO executes: SELECT * FROM book WHERE book_id = ? 
-Returns Book object (or null if not found) 
-Controller checks if book is null 
-Displays result or error message in search.html 
-Code: 
-java 
-@PostMapping("/search") 
-public String searchBook(@RequestParam("bookId") int bookId, Model model) { 
-Book book = bookDAO.findById(bookId); 
-if (book != null) { 
-model.addAttribute("book", book); 
-model.addAttribute("found", true); 
-} else { 
-model.addAttribute("found", false); 
-model.addAttribute("message", "Book not found!"); 
-} 
-return "search"; 
-} 
-Q10: What is @Repository annotation used for? 
-Answer: 
-Marks the class as a DAO (Data Access Layer) 
-Spring component scanning detects it 
-Enables dependency injection 
-Provides exception translation (SQLException → DataAccessException) 
-Q11: Explain MVC architecture in this application. 
-Model: 
-Book.java - Represents data 
-View: 
-addbook.html, books.html, search.html - Thymeleaf templates 
-Controller: 
-BookController.java - Handles requests, calls DAO, returns views 
-DAO Layer: 
-BookDAO.java - Database operations (not part of traditional MVC, but adds separation) 
-Q12: How to add update and delete functionality? 
-In BookDAO.java: 
-java 
-// Update book 
-public void update(Book book) { 
-String sql = "UPDATE book SET book_name=?, author=?, price=? WHERE book_id=?"; 
-jdbcTemplate.update(sql, book.getBookName(), book.getAuthor(), 
-book.getPrice(), book.getBookId()); 
-} 
-// Delete book 
-public void deleteById(int bookId) { 
-String sql = "DELETE FROM book WHERE book_id = ?"; 
-jdbcTemplate.update(sql, bookId); 
-} 
-In BookController.java: 
-java 
-@PostMapping("/delete") 
-public String deleteBook(@RequestParam("bookId") int bookId, Model model) { 
-bookDAO.deleteById(bookId); 
-model.addAttribute("message", "Book deleted successfully!"); 
-model.addAttribute("books", bookDAO.findAll()); 
-return "books"; 
-} 
-Q13: What are the advantages of using JDBC over JPA? 
-Advantages: 
-✅ Full control over SQL queries 
-✅ Better for complex queries 
-✅ No "magic" - explicit code 
-✅ Lighter weight (no ORM overhead) 
-✅ Easier debugging of SQL 
-✅ Good for legacy databases 
-Disadvantages: 
-❌ More boilerplate code 
-❌ Manual mapping required 
-❌ No automatic CRUD operations 
-❌ Less portable across databases 
-Q14: What happens if you don't create the database table before running? 
-Answer: 
-Application will start successfully 
-But when you try to add/view books, you'll get: 
-SQLException: Table 'library_db.book' doesn't exist 
-Solution: Create table manually before running 
-Q15: Convert this JDBC application to use JPA. What changes needed? 
-Changes Required: 
-Book.java - Add annotations: 
-java 
-@Entity 
-@Table(name = "book") 
-public class Book { 
-@Id 
-@Column(name = "book_id") 
-private int bookId; 
-// ... 
-} 
-Replace BookDAO with: 
-java 
-public interface BookRepository extends JpaRepository<Book, Integer> { 
-// No methods needed - JPA provides them 
-} 
-Controller - Change injection: 
-java 
-private final BookRepository bookRepository; 
-// Use bookRepository.save(), bookRepository.findAll(), etc. 
-pom.xml - Replace dependency: 
-xml 
-<!-- Remove --> <dependency> 
-&nbsp;&nbsp;&nbsp;&nbsp;<groupId>org.springframework.boot</groupId> 
-&nbsp;&nbsp;&nbsp;&nbsp;<artifactId>spring-boot-starter-jdbc</artifactId> </dependency> <!-- 
-Add --> <dependency> &nbsp;&nbsp;&nbsp;&nbsp;<groupId>org.springframework.boot</groupId> 
-&nbsp;&nbsp;&nbsp;&nbsp;<artifactId>spring-boot-starter-data-jpa</artifactId> </dependency>  
-application.properties - Add JPA properties: 
-properties 
-spring.jpa.hibernate.ddl-auto=update 
-spring.jpa.show-sql=true 
-Troubleshooting 
-Issue 1: Database Connection Error 
-Error: Communications link failure 
-Solution: 
-Ensure MySQL is running 
-Check username/password in application.properties 
-Verify database name is correct 
-Issue 2: Table Doesn't Exist 
-SQLException: Table 'library_db.book' doesn't exist 
-Solution: 
-Create table using SQL script provided above 
-Table is NOT auto-created in JDBC (unlike Hibernate) 
-Issue 3: Port 8080 Already in Use 
-Error: Port 8080 is already in use 
-Solution: 
-Add to application.properties: 
-properties 
-server.port=8081 
-Issue 4: JdbcTemplate Bean Not Found 
-Error: Could not autowire. No beans of 'JdbcTemplate' type found 
-Solution: 
-Ensure spring-boot-starter-jdbc dependency is in pom.xml 
-Check datasource configuration in application.properties 
--------------------------------------------------------------using hibernate------------------------------------------ 
-Project Structure 
-LibraryBookManagement-Hibernate/ 
-├── src/ 
-│   ├── main/ 
-│   │   ├── java/ 
-│   │   │   └── com/example/demo/ 
-│   │   │       ├── LibraryBookManagementApplication.java 
-│   │   │       ├── Book.java 
-│   │   │       ├── HibernateConfig.java 
-│   │   │       ├── BookDAO.java 
-│   │   │       └── BookController.java 
-│   │   
-└── resources/ 
-│   │       ├── static/ 
-│   │       ├── templates/ 
-│   │       │   ├── addbook.html 
-│   │       │   ├── books.html 
-│   │       │   └── search.html 
-│   │       └── application.properties 
-│   └── test/ 
-├── pom.xml 
-Book.java:- 
-package com.example.demo; 
-import jakarta.persistence.Entity; 
-import jakarta.persistence.Id; 
-import jakarta.persistence.Table; 
-import jakarta.persistence.Column; 
-@Entity 
-@Table(name = "book") 
-public class Book { 
-@Id 
-@Column(name = "book_id") 
-private int bookId; 
-@Column(name = "book_name") 
-private String bookName; 
-@Column(name = "author") 
-private String author; 
-    @Column(name = "price") 
-    private double price; 
-     
-    public Book() {   
-    } 
-    public Book(int bookId, String bookName, String author, double price) { 
-        this.bookId = bookId; 
-        this.bookName = bookName; 
-        this.author = author; 
-        this.price = price; 
-    } 
-    public int getBookId() { 
-        return bookId; 
-    } 
-    public void setBookId(int bookId) { 
-        this.bookId = bookId; 
-    } 
-    public String getBookName() { 
-        return bookName; 
-    } 
-    public void setBookName(String bookName) { 
-        this.bookName = bookName; 
-    } 
-    public String getAuthor() { 
-        return author; 
-    } 
-    public void setAuthor(String author) { 
-        this.author = author; 
-    } 
-    public double getPrice() { 
-        return price; 
-} 
-public void setPrice(double price) { 
-this.price = price; 
-} 
-@Override 
-public String toString() { 
-return "Book [bookId=" + bookId + ", bookName=" + bookName +  
-", author=" + author + ", price=" + price + "]"; 
-} 
-} 
-HibernateConfig.java:- 
-package com.example.demo; 
-import org.hibernate.SessionFactory; 
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder; 
-import org.hibernate.cfg.Configuration; 
-import org.hibernate.cfg.Environment; 
-import org.hibernate.service.ServiceRegistry; 
-import org.springframework.beans.factory.annotation.Value; 
-import org.springframework.context.annotation.Bean; 
-import java.util.Properties; 
-@org.springframework.context.annotation.Configuration 
-public class HibernateConfig { 
-@Value("${spring.datasource.url}") 
-private String dbUrl; 
-@Value("${spring.datasource.username}") 
-private String dbUsername; 
-@Value("${spring.datasource.password}") 
-private String dbPassword; 
-@Bean 
-public SessionFactory sessionFactory() { 
-        Configuration configuration = new Configuration(); 
-        // Hibernate settings 
-        Properties properties = new Properties(); 
-        properties.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver"); 
-        properties.put(Environment.URL, dbUrl); 
-        properties.put(Environment.USER, dbUsername); 
-        properties.put(Environment.PASS, dbPassword); 
-        properties.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect"); 
-        properties.put(Environment.SHOW_SQL, "true"); 
-        properties.put(Environment.FORMAT_SQL, "true"); 
-        properties.put(Environment.HBM2DDL_AUTO, "update"); 
-        properties.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread"); 
-        configuration.setProperties(properties); 
-        // Add annotated entity class 
-        configuration.addAnnotatedClass(Book.class); 
-        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder() 
-                .applySettings(configuration.getProperties()) 
-                .build(); 
-        return configuration.buildSessionFactory(serviceRegistry); 
-    } 
-} 
- 
-BookDAO.java:- 
-package com.example.demo; 
-import java.util.List; 
-import org.hibernate.Session; 
-import org.hibernate.SessionFactory; 
-import org.hibernate.Transaction; 
-import org.hibernate.query.Query; 
-import org.springframework.stereotype.Repository; 
-@Repository 
-public class BookDAO { 
-    private final SessionFactory sessionFactory; 
-    public BookDAO(SessionFactory sessionFactory) { 
-        this.sessionFactory = sessionFactory; 
-    } 
-    // Save book to database 
-    public void save(Book book) { 
-        Transaction transaction = null; 
-        try (Session session = sessionFactory.openSession()) { 
-            transaction = session.beginTransaction(); 
-            session.save(book); 
-            transaction.commit(); 
-        } catch (Exception e) { 
-            if (transaction != null) { 
-                transaction.rollback(); 
-            } 
-            e.printStackTrace(); 
-        } 
-    } 
-    // Get all books from database 
-    public List<Book> findAll() { 
-        try (Session session = sessionFactory.openSession()) { 
-            Query<Book> query = session.createQuery("FROM Book", Book.class); 
-            return query.list(); 
-        } catch (Exception e) { 
-            e.printStackTrace(); 
-            return null; 
-        } 
-    } 
-    // Find book by ID 
-    public Book findById(int bookId) { 
-        try (Session session = sessionFactory.openSession()) { 
-            return session.get(Book.class, bookId); 
-        } catch (Exception e) { 
-            e.printStackTrace(); 
-            return null; 
-        } 
-    } 
-    // Update book 
-    public void update(Book book) { 
-        Transaction transaction = null; 
-        try (Session session = sessionFactory.openSession()) { 
-            transaction = session.beginTransaction(); 
-            session.update(book); 
-            transaction.commit(); 
-        } catch (Exception e) { 
-            if (transaction != null) { 
-                transaction.rollback(); 
-            } 
-            e.printStackTrace(); 
-        } 
-    } 
-    // Delete book by ID 
-    public void deleteById(int bookId) { 
-        Transaction transaction = null; 
-        try (Session session = sessionFactory.openSession()) { 
-            transaction = session.beginTransaction(); 
-            Book book = session.get(Book.class, bookId); 
-            if (book != null) { 
-                session.delete(book); 
-            } 
-            transaction.commit(); 
-        } catch (Exception e) { 
-            if (transaction != null) { 
-                transaction.rollback(); 
-            } 
-            e.printStackTrace(); 
-        } 
-    } 
-} 
-BookController.java:- 
-package com.example.demo; 
-import org.springframework.stereotype.Controller; 
-import org.springframework.ui.Model; 
-import org.springframework.web.bind.annotation.GetMapping; 
-import org.springframework.web.bind.annotation.ModelAttribute; 
-import org.springframework.web.bind.annotation.PostMapping; 
-import org.springframework.web.bind.annotation.RequestParam; 
-import java.util.List; 
-@Controller 
-public class BookController { 
-    private final BookDAO bookDAO; 
-    public BookController(BookDAO bookDAO) { 
-        this.bookDAO = bookDAO; 
-    } 
-    // Show add book form 
-    @GetMapping("/addbook") 
-    public String showAddBookForm(Model model) { 
-        model.addAttribute("book", new Book()); 
-        return "addbook"; 
-    } 
-    // Add new book 
-    @PostMapping("/addbook") 
-    public String addBook(@ModelAttribute Book book, Model model) { 
-        bookDAO.save(book); 
-        model.addAttribute("message", "Book added successfully!"); 
-        model.addAttribute("books", bookDAO.findAll()); 
-        return "books"; 
-    } 
-    // Display all books 
-    @GetMapping("/books") 
-    public String showAllBooks(Model model) { 
-        List<Book> books = bookDAO.findAll(); 
-        model.addAttribute("books", books); 
-        return "books"; 
-    } 
-    // Show search form 
-    @GetMapping("/search") 
-    public String showSearchForm() { 
-        return "search"; 
-    } 
-    // Search book by ID 
-    @PostMapping("/search") 
-    public String searchBook(@RequestParam("bookId") int bookId, Model model) { 
-        Book book = bookDAO.findById(bookId); 
-        if (book != null) { 
-            model.addAttribute("book", book); 
-            model.addAttribute("found", true); 
-        } else { 
-            model.addAttribute("found", false); 
-            model.addAttribute("message", "Book with ID " + bookId + " not found!"); 
-        } 
-        return "search"; 
-    } 
-    // Home page - redirect to add book 
-    @GetMapping("/") 
-    public String home() { 
-        return "redirect:/addbook"; 
-    } 
-} 
- 
- 
-addbook.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-    <title>Add Book</title> 
-</head> 
-<body> 
-<div class="container"> 
-    <h2 style="text-align: center;">Library Book Management</h2> 
-    <h3 style="text-align: center; color: #666;">Add New Book</h3> 
-    <div class="nav-links"> 
-        <a th:href="@{/books}">View All Books</a> 
-        <a th:href="@{/search}">Search Book</a> 
-    </div> 
-    <form th:action="@{/addbook}" th:object="${book}" method="post"> 
-        <label>Book ID:</label> 
-        <input type="number" th:field="*{bookId}" required placeholder="Enter book ID" /> 
-        <label>Book Name:</label> 
-        <input type="text" th:field="*{bookName}" required placeholder="Enter book name" /> 
-        <label>Author:</label> 
-        <input type="text" th:field="*{author}" required placeholder="Enter author name" /> 
-        <label>Price (₹):</label> 
-        <input type="number" step="0.01" th:field="*{price}" required placeholder="Enter price" /> 
-        <button type="submit">Add Book</button> 
-    </form> 
-</div> 
-</body> 
-</html> 
- 
-books.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-    <title>All Books</title> 
-</head> 
-<body> 
-<div class="container"> 
-    <h2>Library Book Management - All Books</h2> 
-    <div class="nav-links"> 
-        <a th:href="@{/addbook}">Add New Book</a> 
-        <a th:href="@{/search}">Search Book</a> 
-    </div> 
-    <div th:if="${message}" class="message"> 
-        <p th:text="${message}"></p> 
-    </div> 
-    <table th:if="${books != null and !books.isEmpty()}"> 
-        <thead> 
-            <tr> 
-                <th>Book ID</th> 
-                <th>Book Name</th> 
-                <th>Author</th> 
-                <th>Price (₹)</th> 
-            </tr> 
-        </thead> 
-        <tbody> 
-            <tr th:each="book : ${books}"> 
-                <td th:text="${book.bookId}"></td> 
-                <td th:text="${book.bookName}"></td> 
-                <td th:text="${book.author}"></td> 
-                <td th:text="${book.price}"></td> 
-            </tr> 
-        </tbody> 
-    </table> 
-    <div th:if="${books == null or books.isEmpty()}" class="no-books"> 
-        <h3>No books available in the library</h3> 
-        <p>Start by adding your first book!</p> 
-        <a th:href="@{/addbook}">Add Book Now</a> 
-    </div> 
-</div> 
-</body> 
-</html> 
- 
-search.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-    <title>Search Book</title> 
-</head> 
-<body> 
-<div class="container"> 
-    <h2>Library Book Management - Search Book</h2> 
-    <div class="nav-links"> 
-        <a th:href="@{/addbook}">Add New Book</a> 
-        <a th:href="@{/books}">View All Books</a> 
-    </div> 
-    <div class="search-form"> 
-        <form th:action="@{/search}" method="post"> 
-            <label>Enter Book ID:</label> 
-            <input type="number" name="bookId" required placeholder="Enter book ID to search" /> 
-            <button type="submit">Search Book</button> 
-        </form> 
-    </div> 
-    <!-- Display search results --> 
-    <div th:if="${found != null}"> 
-        <div th:if="${found}" class="result"> 
-            <h3>✓ Book Found!</h3> 
-            <div class="book-details"> 
-                <p><strong>Book ID:</strong> <span th:text="${book.bookId}"></span></p> 
-                <p><strong>Book Name:</strong> <span th:text="${book.bookName}"></span></p> 
-                <p><strong>Author:</strong> <span th:text="${book.author}"></span></p> 
-                <p><strong>Price:</strong> ₹<span th:text="${book.price}"></span></p> 
-            </div> 
-        </div> 
-        <div th:if="${!found}" class="error"> 
-            <p th:text="${message}"></p> 
-        </div> 
-    </div> 
-</div> 
-</body> 
-</html> 
- 
-application.properties:- 
-spring.application.name=LibraryBookManagement-Hibernate 
-# Database Configuration 
-spring.datasource.url=jdbc:mysql://localhost:3306/library_db 
-spring.datasource.username=root 
-spring.datasource.password=satyamsp 
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver 
-# Thymeleaf Configuration 
-spring.thymeleaf.cache=false 
-spring.thymeleaf.prefix=classpath:/templates/ 
-spring.thymeleaf.suffix=.html 
-# Server Configuration 
-server.port=8080 
-pom.xml:- 
-<?xml version="1.0" encoding="UTF-8"?> 
-<project xmlns="http://maven.apache.org/POM/4.0.0"  
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0  
-         https://maven.apache.org/xsd/maven-4.0.0.xsd"> 
-    <modelVersion>4.0.0</modelVersion> 
-    <parent> 
-        <groupId>org.springframework.boot</groupId> 
-        <artifactId>spring-boot-starter-parent</artifactId> 
-        <version>4.0.1</version> 
-        <relativePath/> 
-    </parent> 
-    <groupId>com.example</groupId> 
-    <artifactId>LibraryBookManagement-Hibernate</artifactId> 
-    <version>0.0.1-SNAPSHOT</version> 
-    <name>LibraryBookManagement-Hibernate</name> 
-    <description>Spring Boot MVC with Pure Hibernate for Library Book Management</description> 
-    <properties> 
-        <java.version>17</java.version> 
-    </properties> 
-    <dependencies> 
-        <!-- Spring Boot Web (MVC) --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-web</artifactId> 
-        </dependency> 
-        <!-- Thymeleaf Template Engine --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-thymeleaf</artifactId> 
-        </dependency> 
-        <!-- Hibernate Core (Pure Hibernate without Spring Data JPA) --> 
-        <dependency> 
-            <groupId>org.hibernate.orm</groupId> 
-            <artifactId>hibernate-core</artifactId> 
-            <version>6.3.1.Final</version> 
-        </dependency> 
-        <!-- MySQL JDBC Driver --> 
-        <dependency> 
-            <groupId>com.mysql</groupId> 
-            <artifactId>mysql-connector-j</artifactId> 
-            <scope>runtime</scope> 
-        </dependency> 
-        <!-- HikariCP Connection Pool --> 
-        <dependency> 
-            <groupId>com.zaxxer</groupId> 
-            <artifactId>HikariCP</artifactId> 
-        </dependency> 
-        <!-- Spring Boot DevTools (Optional - for hot reload) --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-devtools</artifactId> 
-            <scope>runtime</scope> 
-            <optional>true</optional> 
-        </dependency> 
-        <!-- Test Dependencies --> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-test</artifactId> 
-            <scope>test</scope> 
-        </dependency> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-thymeleaf-test</artifactId> 
-            <scope>test</scope> 
-        </dependency> 
-        <dependency> 
-            <groupId>org.springframework.boot</groupId> 
-            <artifactId>spring-boot-starter-webmvc-test</artifactId> 
-            <scope>test</scope> 
-        </dependency> 
-    </dependencies> 
-    <build> 
-        <plugins> 
-            <plugin> 
-                <groupId>org.springframework.boot</groupId> 
-                <artifactId>spring-boot-maven-plugin</artifactId> 
-            </plugin> 
-        </plugins> 
-    </build> 
-</project> 
- 
-  Key Components 
-1
-️⃣ Book.java (Hibernate Entity) 
-Feature 
-@Entity 
-Description 
-Marks class as Hibernate entity 
-@Table(name="book") Maps class to table 
-@Id 
-@Column 
-Fields: 
-Marks primary key 
-Maps Java fields to columns 
-Java Field Database Column 
-bookId 
-book_id 
-bookName book_name 
-author 
-price 
-author 
-price 
-2
-️⃣ HibernateConfig.java (SessionFactory) 
-Responsibility 
-Configuration 
-Purpose 
-Sets DB driver, URL, user, password 
-Dialect 
-hbm2ddl.auto 
-Uses MySQLDialect 
-update (auto table creation) 
-addAnnotatedClass Registers Book entity 
-SessionFactory 
-Creates Hibernate SessionFactory 
-3
-️⃣ BookDAO.java (Hibernate DAO) 
-Operation 
-Insert 
-Read All 
-Hibernate Method 
-session.save(book) 
-session.createQuery("FROM Book") 
-Read One session.get(Book.class, id) 
-Operation Hibernate Method 
-Update session.update(book) 
-Delete session.delete(book) 
-Feature Description 
-API Hibernate Session 
-Transaction Manual 
-Query Type HQL 
-Mapping Automatic 
- 
-4️⃣ BookController.java 
-URL Method Operation 
-/addbook GET Show form 
-/addbook POST Save book 
-/books GET View all 
-/search POST Find book 
- 
-          Database Setup 
-Step Action 
-1 Create database 
-2 Hibernate auto-creates table 
-SQL: 
-CREATE DATABASE library_db; 
- 
-        How to Run 
-Step Command 
-Build mvn clean install 
-Step Command 
-Run mvn spring-boot:run 
-Open http://localhost:8080/addbook 
- 
-  Application URLs 
-URL Method Description 
-/ GET Redirect to addbook 
-/addbook GET Show form 
-/addbook POST Insert book 
-/books GET Show all 
-/search GET Search page 
-/search POST Find by ID 
- 
-      Hibernate Concepts 
-Hibernate Objects 
-Object Role 
-SessionFactory Creates sessions 
-Session Database interaction 
-Transaction Commit / rollback 
-HQL Object-based queries 
- 
-    Hibernate vs JDBC 
-Feature JDBC Hibernate 
-SQL Manual Auto-generated 
-Mapping RowMapper Annotations 
-Entity Plain POJO @Entity 
-Feature JDBC Hibernate 
-Table Creation Manual Automatic 
-Code High Medium 
-Control Full High 
- 
-    Hibernate vs JPA 
-Aspect Hibernate Session JPA EntityManager 
-API Hibernate specific JPA standard 
-Methods save(), get() persist(), find() 
-Queries HQL JPQL 
-Vendor Lock Yes No 
- 
-    Important Hibernate Properties 
-Property Meaning 
-hibernate.hbm2ddl.auto=update Auto create/update tables 
-hibernate.show_sql=true Show SQL in console 
-dialect MySQL support 
- 
-       Maven Dependency (Hibernate) 
-Dependency 
-org.hibernate.orm : hibernate-core 
- 
-       Summary 
-Layer Technology 
-Controller Spring MVC 
-DAO Hibernate Session 
-Layer 
-Technology 
-Entity 
-@Entity annotated 
-Database MySQL 
-ORM 
-View 
-Hibernate 
-Thymeleaf --------------------------little explaination--------------------- 
-Hibernate gives you only: 
-• SessionFactory 
-• Session 
-• Transaction 
-• HQL 
-It does NOT give: 
-• Auto repositories 
-• Auto CRUD methods 
-• Auto service layer 
-So someone must handle: 
-• Opening session 
-• Beginning transaction 
-• Saving data 
-• Querying data 
-• Committing / rollback 
-That role is played by      
-DAO (Data Access Object). 
-What happens if you don't use DAO? 
-If you don’t create DAO, then your Controller will look like this: 
-Session session = sessionFactory.openSession(); 
-Transaction tx = session.beginTransaction(); 
-session.save(book); 
-tx.commit(); 
-session.close(); 
-Your controller becomes: 
-• Dirty 
-• Large 
-• Hard to maintain 
-• Not following MVC 
-❌ Bad design 
-❌ No separation of concerns 
-With DAO (Correct Way) 
-Controller  →  DAO  →  Hibernate Session  →  Database 
-Controller only calls: 
-bookDAO.save(book); 
-DAO handles: 
-• Session 
-• Transaction 
-• HQL 
-• Error handling 
-What about Spring Data JPA? 
-If you use: 
-JpaRepository<Book, Integer> 
-Then DAO is NOT required ❌ 
-Because Spring creates it automatically. 
-But you are using: 
-Pure Hibernate (SessionFactory) 
-So DAO is 100% required. 
-Final Answer 
-Technology 
-JDBC 
-DAO Required? 
-✅ Yes 
-Pure Hibernate ✅ Yes 
-Spring Data JPA ❌ No (Repository auto created) ------------------------------------------------using hibernate----------------------------------------------------- 
-But this is little different not to do this for current exam bro 
-Using Hibernate:- 
-LibraryBookManagementHibernate/ 
-├── src/ 
-│   ├── main/ 
-│   │   ├── java/ 
-│   │   │   └── com/example/demo/ 
-│   │   │       ├── Book.java                    
-│   │   │       ├── BookDAO.java                 
-│   │   │       ├── BookDAOImpl.java             
-(POJO Entity - No JPA annotations) 
-(DAO Interface) 
-(DAO Implementation with Hibernate) 
-│   │   │       ├── HibernateConfig.java        
-│   │   │       ├── BookController.java         
- (SessionFactory Configuration) 
- (Spring MVC Controller) 
-│   │   │       └── LibraryBookManagementApplication.java 
-│   │   └── resources/ 
-│   │      
-│   │      
-│   │       
-│   │      
-│   │      
-│   │      
-│   │      
-│   │      
- ├── static/ 
- ├── templates/ 
-│   ├── addbook.html                
- │   ├── books.html                   
- │   └── search.html                 
- ├── Book.hbm.xml                     
- ├── hibernate.cfg.xml               
- └── application.properties 
-│   └── test/ 
-├── pom.xml 
-Book.java:- 
-package com.example.demo; 
-public class Book { 
-private int bookId; 
-private String bookName; 
-private String author; 
-private double price; 
-public Book() { 
-} 
- (Add Book Form) 
-(Display All Books) 
- (Search Book) 
-(Hibernate Mapping File - Optional) 
- (Hibernate Configuration - Optional) 
-public Book(int bookId, String bookName, String author, double price) { 
-        this.bookId = bookId; 
-        this.bookName = bookName; 
-        this.author = author; 
-        this.price = price; 
-    } 
-    public int getBookId() { 
-        return bookId; 
-    } 
-    public void setBookId(int bookId) { 
-        this.bookId = bookId; 
-    } 
-    public String getBookName() { 
-        return bookName; 
-    } 
-    public void setBookName(String bookName) { 
-        this.bookName = bookName; 
-    } 
-    public String getAuthor() { 
-        return author; 
-    } 
-    public void setAuthor(String author) { 
-        this.author = author; 
-    } 
-    public double getPrice() { 
-        return price; 
-    } 
-     
-    public void setPrice(double price) { 
-        this.price = price; 
-    } 
-    @Override 
-public String toString() { 
-return "Book [bookId=" + bookId + ", bookName=" + bookName +  
-", author=" + author + ", price=" + price + "]"; 
-} 
-} 
-BookDAO.java:- 
-package com.example.demo; 
-import java.util.List; 
-public interface BookDAO { 
-void saveBook(Book book); 
-List<Book> getAllBooks(); 
-Book getBookById(int bookId); 
-void updateBook(Book book); 
-void deleteBook(int bookId); 
-} 
-BookDAOImpl:- 
-package com.example.demo; 
-import org.hibernate.Session; 
-import org.hibernate.SessionFactory; 
-import org.hibernate.Transaction; 
-import org.hibernate.query.Query; 
-import org.springframework.beans.factory.annotation.Autowired; 
-import org.springframework.stereotype.Repository; 
-import java.util.List; 
-@Repository 
-public class BookDAOImpl implements BookDAO { 
-@Autowired 
-private SessionFactory sessionFactory; 
-@Override 
-    public void saveBook(Book book) { 
-        Transaction transaction = null; 
-        try (Session session = sessionFactory.openSession()) { 
-            transaction = session.beginTransaction(); 
-            session.save(book); 
-            transaction.commit(); 
-        } catch (Exception e) { 
-            if (transaction != null) { 
-                transaction.rollback(); 
-            } 
-            e.printStackTrace(); 
-        } 
-    } 
-    @Override 
-    public List<Book> getAllBooks() { 
-        try (Session session = sessionFactory.openSession()) { 
-            Query<Book> query = session.createQuery("FROM Book", Book.class); 
-            return query.list(); 
-        } catch (Exception e) { 
-            e.printStackTrace(); 
-            return null; 
-        } 
-    } 
-    @Override 
-    public Book getBookById(int bookId) { 
-        try (Session session = sessionFactory.openSession()) { 
-            return session.get(Book.class, bookId); 
-        } catch (Exception e) { 
-            e.printStackTrace(); 
-            return null; 
-        } 
-    } 
-    @Override 
-    public void updateBook(Book book) { 
-        Transaction transaction = null; 
-        try (Session session = sessionFactory.openSession()) { 
-            transaction = session.beginTransaction(); 
-            session.update(book); 
-            transaction.commit(); 
-        } catch (Exception e) { 
-            if (transaction != null) { 
-                transaction.rollback(); 
-            } 
-            e.printStackTrace(); 
-        } 
-    } 
-    @Override 
-    public void deleteBook(int bookId) { 
-        Transaction transaction = null; 
-        try (Session session = sessionFactory.openSession()) { 
-            transaction = session.beginTransaction(); 
-            Book book = session.get(Book.class, bookId); 
-            if (book != null) { 
-                session.delete(book); 
-            } 
-            transaction.commit(); 
-        } catch (Exception e) { 
-            if (transaction != null) { 
-                transaction.rollback(); 
-            } 
-            e.printStackTrace(); 
-        } 
-    } 
-} 
- 
-HibernateConfig.java:- 
-package com.example.demo; 
-import org.hibernate.SessionFactory; 
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder; 
-import org.hibernate.cfg.Configuration; 
-import org.hibernate.cfg.Environment; 
-import org.hibernate.service.ServiceRegistry; 
-import org.springframework.beans.factory.annotation.Value; 
-import org.springframework.context.annotation.Bean; 
-import java.util.Properties; 
-@org.springframework.context.annotation.Configuration 
-public class HibernateConfig { 
-    @Value("${spring.datasource.url}") 
-    private String dbUrl; 
-    @Value("${spring.datasource.username}") 
-    private String dbUsername; 
-    @Value("${spring.datasource.password}") 
-    private String dbPassword; 
-    @Bean 
-    public SessionFactory sessionFactory() { 
-        Configuration configuration = new Configuration(); 
-        // Hibernate settings 
-        Properties properties = new Properties(); 
-        properties.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver"); 
-        properties.put(Environment.URL, dbUrl); 
-        properties.put(Environment.USER, dbUsername); 
-        properties.put(Environment.PASS, dbPassword); 
-        properties.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect"); 
-        properties.put(Environment.SHOW_SQL, "true"); 
-        properties.put(Environment.FORMAT_SQL, "true"); 
-        properties.put(Environment.HBM2DDL_AUTO, "update"); 
-        properties.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread"); 
-        configuration.setProperties(properties); 
-        // Add annotated entity classes 
-        configuration.addAnnotatedClass(Book.class); 
-        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder() 
-                .applySettings(configuration.getProperties()) 
-                .build(); 
-        return configuration.buildSessionFactory(serviceRegistry); 
-    } 
-} 
- 
-BookController.java:- 
-package com.example.demo; 
-import org.springframework.beans.factory.annotation.Autowired; 
-import org.springframework.stereotype.Controller; 
-import org.springframework.ui.Model; 
-import org.springframework.web.bind.annotation.GetMapping; 
-import org.springframework.web.bind.annotation.PostMapping; 
-import org.springframework.web.bind.annotation.RequestParam; 
-import org.springframework.web.bind.annotation.ModelAttribute; 
-import java.util.List; 
-@Controller 
-public class BookController { 
-    @Autowired 
-    private BookDAO bookDAO; 
-    // Show the add book form 
-    @GetMapping("/addbook") 
-    public String showAddBookForm(Model model) { 
-        model.addAttribute("book", new Book()); 
-        return "addbook"; 
-    } 
-    // Add a new book 
-    @PostMapping("/addbook") 
-    public String addBook(@ModelAttribute Book book, Model model) { 
-        bookDAO.saveBook(book); 
-        model.addAttribute("message", "Book added successfully!"); 
-        List<Book> books = bookDAO.getAllBooks(); 
-        model.addAttribute("books", books); 
-        return "books"; 
-    } 
-    // Display all books 
-    @GetMapping("/books") 
-    public String showAllBooks(Model model) { 
-        List<Book> books = bookDAO.getAllBooks(); 
-        model.addAttribute("books", books); 
-        return "books"; 
-    } 
-    // Show search form 
-    @GetMapping("/search") 
-    public String showSearchForm() { 
-        return "search"; 
-    } 
-        // Search book by ID 
-    @PostMapping("/search") 
-    public String searchBook(@RequestParam("bookId") int bookId, Model model) { 
-        Book book = bookDAO.getBookById(bookId); 
-        if (book != null) { 
-            model.addAttribute("book", book); 
-            model.addAttribute("found", true); 
-        } else { 
-            model.addAttribute("found", false); 
-            model.addAttribute("message", "Book with ID " + bookId + " not found!"); 
-        } 
-        return "search"; 
-    } 
-} 
- 
-Book.hbm.xml(optional):- 
-<!DOCTYPE hibernate-mapping PUBLIC 
-        "-//Hibernate/Hibernate Mapping DTD 3.0//EN" 
-        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
-<hibernate-mapping> 
-    <class name="com.example.demo.Book" table="book"> 
-        <id name="bookId" column="book_id" type="int"> 
-            <generator class="assigned"/> 
-        </id> 
-        <property name="bookName" column="book_name" type="string" length="255"/> 
-        <property name="author" column="author" type="string" length="255"/> 
-        <property name="price" column="price" type="double"/> 
-    </class> 
-</hibernate-mapping> 
- 
-Hibernate.cfg.xml(optional):- 
-<!DOCTYPE hibernate-configuration PUBLIC 
-        "-//Hibernate/Hibernate Configuration DTD 3.0//EN" 
-        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd"> 
-<hibernate-configuration> 
-    <session-factory> 
-        <!-- Database connection settings --> 
-        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property> 
-        <property 
-name="hibernate.connection.url">jdbc:mysql://localhost:3306/library_db</property> 
-        <property name="hibernate.connection.username">root</property> 
-        <property name="hibernate.connection.password">satyamsp</property> 
-        <!-- JDBC connection pool settings --> 
-        <property name="hibernate.connection.pool_size">10</property> 
-        <!-- SQL dialect --> 
-        <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property> 
-        <!-- Echo all executed SQL to console --> 
-        <property name="hibernate.show_sql">true</property> 
-        <property name="hibernate.format_sql">true</property> 
-        <!-- Drop and re-create the database schema on startup --> 
-        <property name="hibernate.hbm2ddl.auto">update</property> 
-        <!-- Current session context --> 
-        <property name="hibernate.current_session_context_class">thread</property> 
-        <!-- Mapping files --> 
-        <mapping resource="Book.hbm.xml"/> 
-    </session-factory> 
-</hibernate-configuration> 
- 
-application.properties:- 
-spring.application.name=LibraryBookManagementHibernate 
-# Database Configuration 
-spring.datasource.url=jdbc:mysql://localhost:3306/library_db 
-spring.datasource.username=root 
-spring.datasource.password=satyamsp 
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver 
-# Thymeleaf Configuration 
-spring.thymeleaf.cache=false 
-spring.thymeleaf.prefix=classpath:/templates/ 
-spring.thymeleaf.suffix=.html 
-# Server Configuration 
-server.port=8080 
-addBook.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-<title>Add Book</title> 
-</head> 
-<body> 
-<h2>Library Book Management - Add Book</h2> 
-<div class="nav-links"> 
-<a th:href="@{/books}">View All Books</a> 
-<a th:href="@{/search}">Search Book</a> 
-</div> 
-<form th:action="@{/addbook}" th:object="${book}" method="post"> 
-<label>Book ID:</label> 
-<input type="number" th:field="*{bookId}" required /> 
-<label>Book Name:</label> 
-<input type="text" th:field="*{bookName}" required /> 
-<label>Author:</label> 
-<input type="text" th:field="*{author}" required /> 
-<label>Price:</label> 
-<input type="number" step="0.01" th:field="*{price}" required /> 
-<button type="submit">Add Book</button> 
-</form> 
-</body> 
-</html> 
-Books.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-    <title>All Books</title> 
-</head> 
-<body> 
-<h2>Library Book Management - All Books</h2> 
-<div class="nav-links"> 
-    <a th:href="@{/addbook}">Add New Book</a> 
-    <a th:href="@{/search}">Search Book</a> 
-</div> 
-<div th:if="${message}" class="message"> 
-    <p th:text="${message}"></p> 
-</div> 
-<table th:if="${books != null and !books.isEmpty()}"> 
-    <tr> 
-        <th>Book ID</th> 
-        <th>Book Name</th> 
-        <th>Author</th> 
-        <th>Price</th> 
-    </tr> 
-    <tr th:each="b : ${books}"> 
-        <td th:text="${b.bookId}"></td> 
-        <td th:text="${b.bookName}"></td> 
-        <td th:text="${b.author}"></td> 
-        <td th:text="'₹' + ${b.price}"></td> 
-    </tr> 
-</table> 
-<div th:if="${books == null or books.isEmpty()}" class="no-books"> 
-    <p>No books available in the library.</p> 
-    <a th:href="@{/addbook}">Add your first book</a> 
-</div> 
-</body> 
-</html> 
- 
-Search.html:- 
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org"> 
-<head> 
-    <title>Search Book</title> 
-</head> 
-<body> 
-<h2>Library Book Management - Search Book</h2> 
-<div class="nav-links"> 
-    <a th:href="@{/addbook}">Add New Book</a> 
-    <a th:href="@{/books}">View All Books</a> 
-</div> 
-<div class="search-form"> 
-    <form th:action="@{/search}" method="post"> 
-        <label>Enter Book ID:</label> 
-        <input type="number" name="bookId" required placeholder="Enter book ID to search" /> 
-        <button type="submit">Search</button> 
-    </form> 
-</div> 
- 
-<div th:if="${found != null}"> 
-    <div th:if="${found}" class="result"> 
-        <h3>Book Found!</h3> 
-        <div class="book-details"> 
-            <p><strong>Book ID:</strong> <span th:text="${book.bookId}"></span></p> 
-            <p><strong>Book Name:</strong> <span th:text="${book.bookName}"></span></p> 
-            <p><strong>Author:</strong> <span th:text="${book.author}"></span></p> 
-            <p><strong>Price:</strong> <span th:text="'₹' + ${book.price}"></span></p> 
-</div> 
-</div> 
-<div th:if="${!found}" class="error"> 
-<p th:text="${message}"></p> 
-</div> 
-</div> 
-</body> 
-</html> -------------can be replaced----------------- 
-Hibernate Configuration - Annotations vs 
-XML Mapping 
-The Problem 
-Your current code has a MISMATCH: 
-• Book.java = Plain POJO (no annotations) 
-• HibernateConfig.java = Uses 
-configuration.addAnnotatedClass(Book.class) which expects annotations 
-Result: ❌ Code will NOT work! 
-✅ Solution 1: USE ANNOTATIONS (Recommended - 
-No XML needed) 
-Files Required: 
-1. ✅ Book.java (WITH annotations) 
-2. ✅ HibernateConfig.java (with addAnnotatedClass) 
-3. ✅ BookDAO.java 
-4. ✅ BookDAOImpl.java 
-5. ✅ BookController.java 
-6. ❌ Book.hbm.xml (NOT NEEDED) 
-7. ❌ hibernate.cfg.xml (NOT NEEDED) 
-Book.java (WITH Annotations): 
-java 
-package com.example.demo; 
-import jakarta.persistence.Entity; 
-import jakarta.persistence.Id; 
-import jakarta.persistence.Table; 
-import jakarta.persistence.Column; 
-@Entity 
-@Table(name = "book") 
-public class Book { 
-@Id 
-@Column(name = "book_id") 
-private int bookId; 
-@Column(name = "book_name") 
-private String bookName; 
-@Column(name = "author") 
-private String author; 
-@Column(name = "price") 
-private double price; 
-// Constructor, getters, setters... 
-} 
-HibernateConfig.java: 
-java 
-@Bean 
-public SessionFactory sessionFactory() { 
-Configuration configuration = new Configuration(); 
-// ... properties ... 
-// Add annotated entity class 
-configuration.addAnnotatedClass(Book.class);  // ✅ Works with annotations 
-     
-    ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder() 
-            .applySettings(configuration.getProperties()) 
-            .build(); 
-     
-    return configuration.buildSessionFactory(serviceRegistry); 
-} 
-✅ Advantages: 
-• No XML files needed 
-• Cleaner project structure 
-• Modern approach 
-• Less configuration 
-• Type-safe 
- 
-✅ Solution 2: USE XML MAPPING (Old school way) 
-Files Required: 
-1. ✅ Book.java (WITHOUT annotations - plain POJO) 
-2. ✅ HibernateConfig.java (with addResource for XML) 
-3. ✅ BookDAO.java 
-4. ✅ BookDAOImpl.java 
-5. ✅ BookController.java 
-6. ✅ Book.hbm.xml (REQUIRED - in resources folder) 
-7. ❌ hibernate.cfg.xml (Optional) 
-Book.java (Plain POJO - NO Annotations): 
-java 
-package com.example.demo; 
- 
-public class Book { 
-    private int bookId; 
-    private String bookName; 
-    private String author; 
-    private double price; 
-     
-    // Constructor, getters, setters... 
-} 
-HibernateConfig.java (Modified): 
-java 
-@Bean 
-public SessionFactory sessionFactory() { 
-    Configuration configuration = new Configuration(); 
-    // ... properties ... 
-     
-    // Use XML mapping file 
-    configuration.addResource("Book.hbm.xml");  // ✅ Works with XML 
-     
-    ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder() 
-            .applySettings(configuration.getProperties()) 
-            .build(); 
-     
-    return configuration.buildSessionFactory(serviceRegistry); 
-} 
-Book.hbm.xml (in src/main/resources/): 
-xml 
-<?xml version="1.0" encoding="UTF-8"?> 
-<!DOCTYPE hibernate-mapping PUBLIC 
-        "-//Hibernate/Hibernate Mapping DTD 3.0//EN" 
-        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
- 
-<hibernate-mapping> 
-    <class name="com.example.demo.Book" table="book"> 
-        <id name="bookId" column="book_id" type="int"> 
-            <generator class="assigned"/> 
-        </id> 
-         
-        <property name="bookName" column="book_name" type="string"/> 
-        <property name="author" column="author" type="string"/> 
-        <property name="price" column="price" type="double"/> 
-    </class> 
-</hibernate-mapping> 
-Advantages: 
-• Separation of concerns (mapping separate from code) 
-• Can change mapping without recompiling 
-• Legacy Hibernate approach 
-Comparison Table 
-Aspect 
-Book.java 
-HibernateConfig 
-XML files needed 
-hibernate.cfg.xml 
-Modern approach 
-Easy to maintain 
-Code & mapping 
-together 
-Annotations (Solution 1) 
-WITH @Entity, @Id 
-annotations 
-addAnnotatedClass() 
-❌ NO 
-❌ Not needed 
-✅ Yes 
-✅ Yes     
-✅ Yes 
-XML Mapping (Solution 2) 
-Plain POJO (no annotations) 
-addResource("Book.hbm.xml") 
-✅ YES (Book.hbm.xml) 
-❌ Not needed (using Java 
-config) 
-❌ Old way 
-Medium 
-❌ No (separate files) 
-RECOMMENDATION 
-Use Solution 1 (Annotations) because: 
-1. ✅ No XML files to maintain 
-2. ✅ Cleaner project structure 
-3. ✅ Modern Hibernate approach 
-4. ✅ Still uses Hibernate (not JPA Repository) 
-5. ✅ Everything in one place 
-What You Currently Have (WRONG ❌) 
-java 
-// Book.java - Plain POJO (no annotations) 
-public class Book { 
-private int bookId; 
-// ... 
-} 
-// HibernateConfig.java 
-configuration.addAnnotatedClass(Book.class);  // ❌ Expects annotations but Book has none! 
-This will FAIL! You need to either: 
-• Add annotations to Book.java, OR 
-• Use XML mapping and change to configuration.addResource("Book.hbm.xml") 
-Files You Can Safely Delete 
-If using Solution 1 (Annotations): 
-• ❌ Book.hbm.xml (delete) 
-• ❌ hibernate.cfg.xml (delete) 
-If using Solution 2 (XML): 
-•     Need to keep Book.hbm.xml 
-• ❌ hibernate.cfg.xml (can delete - using Java config instead) 
+Q.) Problem Statement 1: Spring Boot MVC Application
+Develop a Spring Boot MVC application for managing Library Book Management.
+The application should:
+Provide a form to add book details (Book ID, Book Name, Author, Price).
+Store the data in a database using any one of the following: JDBC / Hibernate / JPA.
+Display the list of all books.
+Provide a feature to search book details by Book ID.
+Use Controller, Service (optional), DAO/Repository, and Thymeleaf/JSP views.
+Follow proper MVC architecture.
+Solution:-
+Using JPA:-
+Structure:-
+LibraryBookManagement/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/example/demo/
+│   │   │       ├── Book.java                    (Entity)
+│   │   │       ├── BookRepository.java          (Repository)
+│   │   │       ├── BookController.java          (Controller)
+│   │   │       └── LibraryBookManagementApplication.java
+│   │   └── resources/
+│   │       ├── static/
+│   │       ├── templates/
+│   │       │   ├── addbook.html                 (Add Book Form)
+│   │       │   ├── books.html                   (Display All Books)
+│   │       │   └── search.html                  (Search Book)
+│   │       └── application.properties
+│   └── test/
+├── pom.xml
+
+Book.java:-
+package com.example.demo;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+@Entity
+public class Book {
+    @Id
+    private int bookId;
+    private String bookName;
+    private String author;
+    private double price;
+    public Book() {
+    }
+    public Book(int bookId, String bookName, String author, double price) {
+        this.bookId = bookId;
+        this.bookName = bookName;
+        this.author = author;
+        this.price = price;
+    }
+    public int getBookId() {
+        return bookId;
+    }
+    public void setBookId(int bookId) {
+        this.bookId = bookId;
+    }
+    public String getBookName() {
+        return bookName;
+    }
+    public void setBookName(String bookName) {
+        this.bookName = bookName;
+    }
+    public String getAuthor() {
+        return author;
+    }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+    public double getPrice() {
+        return price;
+    }
+    public void setPrice(double price) {
+        this.price = price;
+    }
+}
+
+BookController.java:-
+package com.example.demo;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import java.util.Optional;
+@Controller
+public class BookController {
+    private final BookRepository bookRepository;
+    public BookController(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
+    // Show the add book form
+    @GetMapping("/addbook")
+    public String showAddBookForm(Model model) {
+        model.addAttribute("book", new Book());
+        return "addbook";
+    }
+    // Add a new book
+    @PostMapping("/addbook")
+    public String addBook(@ModelAttribute Book book, Model model) {
+        bookRepository.save(book);
+        model.addAttribute("message", "Book added successfully!");
+        model.addAttribute("books", bookRepository.findAll());
+        return "books";
+    }
+    // Display all books
+    @GetMapping("/books")
+    public String showAllBooks(Model model) {
+        model.addAttribute("books", bookRepository.findAll());
+        return "books";
+    }
+    // Show search form
+    @GetMapping("/search")
+    public String showSearchForm() {
+        return "search";
+    }
+    // Search book by ID
+    @PostMapping("/search")
+    public String searchBook(@RequestParam("bookId") int bookId, Model model) {
+        Optional<Book> book = bookRepository.findById(bookId);    
+        if (book.isPresent()) {
+            model.addAttribute("book", book.get());
+            model.addAttribute("found", true);
+        } else {
+            model.addAttribute("found", false);
+            model.addAttribute("message", "Book with ID " + bookId + " not found!");
+        }
+         return "search";
+    }
+}
+
+BookRepository.java:-
+package com.example.demo;
+import org.springframework.data.jpa.repository.JpaRepository;
+public interface BookRepository extends JpaRepository<Book, Integer> {
+}
+
+LibraryBookManagementApplication.java = It would be inbuilt provided there it starts the project
+
+addbook.html:-
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Book</title>
+</head>
+<body>
+<h2>Add Book</h2>
+<a th:href="@{/books}">View All Books</a>
+<br><br>
+<form th:action="@{/addbook}" th:object="${book}" method="post">
+    <label>Book ID:</label>
+    <input type="number" th:field="*{bookId}" /><br><br>
+    <label>Book Name:</label>
+    <input type="text" th:field="*{bookName}" /><br><br>
+    <label>Author:</label>
+    <input type="text" th:field="*{author}" /><br><br>
+    <label>Price:</label>
+    <input type="number" step="0.01" th:field="*{price}" /><br><br>
+    <button type="submit">Add Book</button>
+</form>
+</body>
+</html>
+
+books.html:-
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>All Books</title>
+</head>
+<body>
+<h2>Library Book Management - All Books</h2>
+<div class="nav-links">
+    <a th:href="@{/addbook}">Add New Book</a>
+    <a th:href="@{/search}">Search Book</a>
+</div>
+<div th:if="${message}">
+    <p th:text="${message}"></p>
+</div>
+<table th:if="${books != null and !books.isEmpty()}">
+    <tr>
+        <th>Book ID</th>
+        <th>Book Name</th>
+        <th>Author</th>
+        <th>Price</th>
+    </tr>
+    <tr th:each="b : ${books}">
+        <td th:text="${b.bookId}"></td>
+        <td th:text="${b.bookName}"></td>
+        <td th:text="${b.author}"></td>
+        <td th:text="'₹' + ${b.price}"></td>
+    </tr>
+</table>
+<div th:if="${books == null or books.isEmpty()}">
+    <p>No books available in the library.</p>
+    <a th:href="@{/addbook}">Add your first book</a>
+</div>
+</body>
+</html>
+
+search.html:-
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Search Book</title>
+</head>
+<body>
+<h2>Library Book Management - Search Book</h2>
+<div class="nav-links">
+    <a th:href="@{/addbook}">Add New Book</a>
+    <a th:href="@{/books}">View All Books</a>
+</div>
+<div class="search-form">
+    <form th:action="@{/search}" method="post">
+        <label>Enter Book ID:</label>
+        <input type="number" name="bookId" required />
+        <button type="submit">Search</button>
+    </form>
+</div>
+<div th:if="${found != null}">
+    <div th:if="${found}">
+        <h3>Book Found!</h3>
+        <p>Book ID: <span th:text="${book.bookId}"></span></p>
+        <p>Book Name: <span th:text="${book.bookName}"></span></p>
+        <p>Author: <span th:text="${book.author}"></span></p>
+        <p>Price: <span th:text="'₹' + ${book.price}"></span></p>
+    </div>
+    <div th:if="${!found}">
+        <p th:text="${message}"></p>
+    </div>
+</div>
+</body>
+</html>
+
+application.properties:-
+spring.application.name=LibraryBookManagement
+# Database Configuration
+spring.datasource.url=jdbc:mysql://localhost:3306/library_db
+spring.datasource.username=root
+spring.datasource.password=satyamsp
+# JPA/Hibernate Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+# Thymeleaf Configuration
+spring.thymeleaf.cache=false
+
+pom.xml:-
+project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.1</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.example</groupId>
+    <artifactId>LibraryBookManagement</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>LibraryBookManagement</name>
+    <description>Spring Boot MVC application for Library Book Management</description>
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+    <dependencies>
+        <!-- Spring Boot Web MVC -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- Spring Boot Data JPA -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- Thymeleaf Template Engine -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- JDBC -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <!-- MySQL Driver -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Spring Boot DevTools (Optional - for hot reload) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+-------------------------------------------------------------------------------using jdbc------------------------------------------------------------------------------------------------
+Spring Boot MVC application for Library Book Management using JDBC (JdbcTemplate)
+Book.java:-
+package com.example.demo;
+public class Book {
+    private int bookId;
+    private String bookName;
+    private String author;
+    private double price;
+    public Book() {
+    }
+    public Book(int bookId, String bookName, String author, double price) {
+        this.bookId = bookId;
+        this.bookName = bookName;
+        this.author = author;
+        this.price = price;
+    }
+    public int getBookId() {
+        return bookId;
+    }
+    public void setBookId(int bookId) {
+        this.bookId = bookId;
+    }
+    public String getBookName() {
+        return bookName;
+    }
+    public void setBookName(String bookName) {
+        this.bookName = bookName;
+    }
+    public String getAuthor() {
+        return author;
+    }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+    public double getPrice() {
+        return price;
+    }
+    public void setPrice(double price) {
+        this.price = price;
+    }
+    @Override
+    public String toString() {
+        return "Book [bookId=" + bookId + ", bookName=" + bookName + 
+               ", author=" + author + ", price=" + price + "]";
+    }
+}
+
+BookController.java:-
+package com.example.demo;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
+@Controller
+public class BookController {
+    private final BookDAO bookDAO;
+    public BookController(BookDAO bookDAO) {
+        this.bookDAO = bookDAO;
+    }
+    // Show add book form
+    @GetMapping("/addbook")
+    public String showAddBookForm(Model model) {
+        model.addAttribute("book", new Book());
+        return "addbook";
+    }
+    // Add new book
+    @PostMapping("/addbook")
+    public String addBook(@ModelAttribute Book book, Model model) {
+        bookDAO.save(book);
+        model.addAttribute("message", "Book added successfully!");
+        model.addAttribute("books", bookDAO.findAll());
+        return "books";
+    }
+    // Display all books
+    @GetMapping("/books")
+    public String showAllBooks(Model model) {
+        List<Book> books = bookDAO.findAll();
+        model.addAttribute("books", books);
+        return "books";
+    }
+    // Show search form
+    @GetMapping("/search")
+    public String showSearchForm() {
+        return "search";
+    }
+    // Search book by ID
+    @PostMapping("/search")
+    public String searchBook(@RequestParam("bookId") int bookId, Model model) {
+        Book book = bookDAO.findById(bookId);
+        if (book != null) {
+            model.addAttribute("book", book);
+            model.addAttribute("found", true);
+        } else {
+            model.addAttribute("found", false);
+            model.addAttribute("message", "Book with ID " + bookId + " not found!");
+        }
+        return "search";
+    }
+    // Home page - redirect to add book
+    @GetMapping("/")
+    public String home() {
+        return "redirect:/addbook";
+    }
+}
+
+addbook.html:-
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Book</title>
+</head>
+<body>
+<div class="container">
+    <h2 style="text-align: center;">Library Book Management</h2>
+    <h3 style="text-align: center; color: #666;">Add New Book</h3>
+    <div class="nav-links">
+        <a th:href="@{/books}">View All Books</a>
+        <a th:href="@{/search}">Search Book</a>
+    </div>
+    <form th:action="@{/addbook}" th:object="${book}" method="post">
+        <label>Book ID:</label>
+        <input type="number" th:field="*{bookId}" required placeholder="Enter book ID" />
+        <label>Book Name:</label>
+        <input type="text" th:field="*{bookName}" required placeholder="Enter book name" />
+        <label>Author:</label>
+        <input type="text" th:field="*{author}" required placeholder="Enter author name" />
+        <label>Price (₹):</label>
+        <input type="number" step="0.01" th:field="*{price}" required placeholder="Enter price" />
+        <button type="submit">Add Book</button>
+    </form>
+</div>
+</body>
+</html>
+books.html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>All Books</title>
+</head>
+<body>
+<div class="container">
+    <h2>Library Book Management - All Books</h2>
+    <div class="nav-links">
+        <a th:href="@{/addbook}">Add New Book</a>
+        <a th:href="@{/search}">Search Book</a>
+    </div>
+    <div th:if="${message}" class="message">
+        <p th:text="${message}"></p>
+    </div>
+    <table th:if="${books != null and !books.isEmpty()}">
+        <thead>
+            <tr>
+                <th>Book ID</th>
+                <th>Book Name</th>
+                <th>Author</th>
+                <th>Price (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="book : ${books}">
+                <td th:text="${book.bookId}"></td>
+                <td th:text="${book.bookName}"></td>
+                <td th:text="${book.author}"></td>
+                <td th:text="${book.price}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <div th:if="${books == null or books.isEmpty()}" class="no-books">
+        <h3>No books available in the library</h3>
+        <p>Start by adding your first book!</p>
+        <a th:href="@{/addbook}">Add Book Now</a>
+    </div>
+</div>
+</body>
+</html>
+
+search.html:-
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Search Book</title>
+</head>
+<body>
+<div class="container">
+    <h2>Library Book Management - Search Book</h2>
+    <div class="nav-links">
+        <a th:href="@{/addbook}">Add New Book</a>
+        <a th:href="@{/books}">View All Books</a>
+    </div>
+    <div class="search-form">
+        <form th:action="@{/search}" method="post">
+            <label>Enter Book ID:</label>
+            <input type="number" name="bookId" required placeholder="Enter book ID to search" />
+            <button type="submit">Search Book</button>
+        </form>
+    </div>
+    <!-- Display search results -->
+    <div th:if="${found != null}">
+        <div th:if="${found}" class="result">
+            <h3>✓ Book Found!</h3>
+            <div class="book-details">
+                <p><strong>Book ID:</strong> <span th:text="${book.bookId}"></span></p>
+                <p><strong>Book Name:</strong> <span th:text="${book.bookName}"></span></p>
+                <p><strong>Author:</strong> <span th:text="${book.author}"></span></p>
+                <p><strong>Price:</strong> ₹<span th:text="${book.price}"></span></p>
+            </div>
+        </div>
+        <div th:if="${!found}" class="error">
+            <p th:text="${message}"></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+application.properties:-
+spring.application.name=LibraryBookManagement-JDBC
+# Database Configuration
+spring.datasource.url=jdbc:mysql://localhost:3306/library_db
+spring.datasource.username=root
+spring.datasource.password=satyamsp
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+# Thymeleaf Configuration
+spring.thymeleaf.cache=false
+spring.thymeleaf.prefix=classpath:/templates/
+spring.thymeleaf.suffix=.html
+# Server Configuration
+server.port=8080
+
+pom.xml:-
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.1</version>
+        <relativePath/>
+    </parent>
+    <groupId>com.example</groupId>
+    <artifactId>LibraryBookManagement-JDBC</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>LibraryBookManagement-JDBC</name>
+    <description>Spring Boot MVC with JDBC for Library Book Management</description>
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+    <dependencies>
+        <!-- Spring Boot Web (MVC) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- Thymeleaf Template Engine -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- Spring JDBC (JdbcTemplate) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <!-- MySQL JDBC Driver -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Spring Boot DevTools (Optional - for hot reload) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+
+-----------------------------------------------------------------------------------using hibernate----------------------------------------------------------------------------------------
+📁 Project Structure
+LibraryBookManagement-Hibernate/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/example/demo/
+│   │   │       ├── LibraryBookManagementApplication.java
+│   │   │       ├── Book.java
+│   │   │       ├── HibernateConfig.java
+│   │   │       ├── BookDAO.java
+│   │   │       └── BookController.java
+│   │   └── resources/
+│   │       ├── static/
+│   │       ├── templates/
+│   │       │   ├── addbook.html
+│   │       │   ├── books.html
+│   │       │   └── search.html
+│   │       └── application.properties
+│   └── test/
+├── pom.xml
+
+Book.java:-
+package com.example.demo;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Column;
+@Entity
+@Table(name = "book")
+public class Book {
+    @Id
+    @Column(name = "book_id")
+    private int bookId;
+    @Column(name = "book_name")
+    private String bookName;
+    @Column(name = "author")
+    private String author;
+    @Column(name = "price")
+    private double price;
+    
+    public Book() {  
+    }
+    public Book(int bookId, String bookName, String author, double price) {
+        this.bookId = bookId;
+        this.bookName = bookName;
+        this.author = author;
+        this.price = price;
+    }
+    public int getBookId() {
+        return bookId;
+    }
+    public void setBookId(int bookId) {
+        this.bookId = bookId;
+    }
+    public String getBookName() {
+        return bookName;
+    }
+    public void setBookName(String bookName) {
+        this.bookName = bookName;
+    }
+    public String getAuthor() {
+        return author;
+    }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+    public double getPrice() {
+        return price;
+    }
+    public void setPrice(double price) {
+        this.price = price;
+    }
+    @Override
+    public String toString() {
+        return "Book [bookId=" + bookId + ", bookName=" + bookName + 
+               ", author=" + author + ", price=" + price + "]";
+    }
+}
+
+HibernateConfig.java:-
+package com.example.demo;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.Environment;
+import org.hibernate.service.ServiceRegistry;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import java.util.Properties;
+@org.springframework.context.annotation.Configuration
+public class HibernateConfig {
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
+    @Bean
+    public SessionFactory sessionFactory() {
+        Configuration configuration = new Configuration();
+        // Hibernate settings
+        Properties properties = new Properties();
+        properties.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
+        properties.put(Environment.URL, dbUrl);
+        properties.put(Environment.USER, dbUsername);
+        properties.put(Environment.PASS, dbPassword);
+        properties.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
+        properties.put(Environment.SHOW_SQL, "true");
+        properties.put(Environment.FORMAT_SQL, "true");
+        properties.put(Environment.HBM2DDL_AUTO, "update");
+        properties.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+        configuration.setProperties(properties);
+        // Add annotated entity class
+        configuration.addAnnotatedClass(Book.class);
+        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                .applySettings(configuration.getProperties())
+                .build();
+        return configuration.buildSessionFactory(serviceRegistry);
+    }
+}
+
+BookDAO.java:-
+package com.example.demo;
+import java.util.List;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+import org.springframework.stereotype.Repository;
+@Repository
+public class BookDAO {
+    private final SessionFactory sessionFactory;
+    public BookDAO(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+    // Save book to database
+    public void save(Book book) {
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            session.save(book);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+    // Get all books from database
+    public List<Book> findAll() {
+        try (Session session = sessionFactory.openSession()) {
+            Query<Book> query = session.createQuery("FROM Book", Book.class);
+            return query.list();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    // Find book by ID
+    public Book findById(int bookId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(Book.class, bookId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    // Update book
+    public void update(Book book) {
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            session.update(book);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+    // Delete book by ID
+    public void deleteById(int bookId) {
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            Book book = session.get(Book.class, bookId);
+            if (book != null) {
+                session.delete(book);
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+}
+BookController.java:-
+package com.example.demo;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import java.util.List;
+@Controller
+public class BookController {
+    private final BookDAO bookDAO;
+    public BookController(BookDAO bookDAO) {
+        this.bookDAO = bookDAO;
+    }
+    // Show add book form
+    @GetMapping("/addbook")
+    public String showAddBookForm(Model model) {
+        model.addAttribute("book", new Book());
+        return "addbook";
+    }
+    // Add new book
+    @PostMapping("/addbook")
+    public String addBook(@ModelAttribute Book book, Model model) {
+        bookDAO.save(book);
+        model.addAttribute("message", "Book added successfully!");
+        model.addAttribute("books", bookDAO.findAll());
+        return "books";
+    }
+    // Display all books
+    @GetMapping("/books")
+    public String showAllBooks(Model model) {
+        List<Book> books = bookDAO.findAll();
+        model.addAttribute("books", books);
+        return "books";
+    }
+    // Show search form
+    @GetMapping("/search")
+    public String showSearchForm() {
+        return "search";
+    }
+    // Search book by ID
+    @PostMapping("/search")
+    public String searchBook(@RequestParam("bookId") int bookId, Model model) {
+        Book book = bookDAO.findById(bookId);
+        if (book != null) {
+            model.addAttribute("book", book);
+            model.addAttribute("found", true);
+        } else {
+            model.addAttribute("found", false);
+            model.addAttribute("message", "Book with ID " + bookId + " not found!");
+        }
+        return "search";
+    }
+    // Home page - redirect to add book
+    @GetMapping("/")
+    public String home() {
+        return "redirect:/addbook";
+    }
+}
+
+
+addbook.html:-
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Book</title>
+</head>
+<body>
+<div class="container">
+    <h2 style="text-align: center;">Library Book Management</h2>
+    <h3 style="text-align: center; color: #666;">Add New Book</h3>
+    <div class="nav-links">
+        <a th:href="@{/books}">View All Books</a>
+        <a th:href="@{/search}">Search Book</a>
+    </div>
+    <form th:action="@{/addbook}" th:object="${book}" method="post">
+        <label>Book ID:</label>
+        <input type="number" th:field="*{bookId}" required placeholder="Enter book ID" />
+        <label>Book Name:</label>
+        <input type="text" th:field="*{bookName}" required placeholder="Enter book name" />
+        <label>Author:</label>
+        <input type="text" th:field="*{author}" required placeholder="Enter author name" />
+        <label>Price (₹):</label>
+        <input type="number" step="0.01" th:field="*{price}" required placeholder="Enter price" />
+        <button type="submit">Add Book</button>
+    </form>
+</div>
+</body>
+</html>
+
+books.html:-
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>All Books</title>
+</head>
+<body>
+<div class="container">
+    <h2>Library Book Management - All Books</h2>
+    <div class="nav-links">
+        <a th:href="@{/addbook}">Add New Book</a>
+        <a th:href="@{/search}">Search Book</a>
+    </div>
+    <div th:if="${message}" class="message">
+        <p th:text="${message}"></p>
+    </div>
+    <table th:if="${books != null and !books.isEmpty()}">
+        <thead>
+            <tr>
+                <th>Book ID</th>
+                <th>Book Name</th>
+                <th>Author</th>
+                <th>Price (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="book : ${books}">
+                <td th:text="${book.bookId}"></td>
+                <td th:text="${book.bookName}"></td>
+                <td th:text="${book.author}"></td>
+                <td th:text="${book.price}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <div th:if="${books == null or books.isEmpty()}" class="no-books">
+        <h3>No books available in the library</h3>
+        <p>Start by adding your first book!</p>
+        <a th:href="@{/addbook}">Add Book Now</a>
+    </div>
+</div>
+</body>
+</html>
+
+search.html:-
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Search Book</title>
+</head>
+<body>
+<div class="container">
+    <h2>Library Book Management - Search Book</h2>
+    <div class="nav-links">
+        <a th:href="@{/addbook}">Add New Book</a>
+        <a th:href="@{/books}">View All Books</a>
+    </div>
+    <div class="search-form">
+        <form th:action="@{/search}" method="post">
+            <label>Enter Book ID:</label>
+            <input type="number" name="bookId" required placeholder="Enter book ID to search" />
+            <button type="submit">Search Book</button>
+        </form>
+    </div>
+    <!-- Display search results -->
+    <div th:if="${found != null}">
+        <div th:if="${found}" class="result">
+            <h3>✓ Book Found!</h3>
+            <div class="book-details">
+                <p><strong>Book ID:</strong> <span th:text="${book.bookId}"></span></p>
+                <p><strong>Book Name:</strong> <span th:text="${book.bookName}"></span></p>
+                <p><strong>Author:</strong> <span th:text="${book.author}"></span></p>
+                <p><strong>Price:</strong> ₹<span th:text="${book.price}"></span></p>
+            </div>
+        </div>
+        <div th:if="${!found}" class="error">
+            <p th:text="${message}"></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+application.properties:-
+spring.application.name=LibraryBookManagement-Hibernate
+# Database Configuration
+spring.datasource.url=jdbc:mysql://localhost:3306/library_db
+spring.datasource.username=root
+spring.datasource.password=satyamsp
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+# Thymeleaf Configuration
+spring.thymeleaf.cache=false
+spring.thymeleaf.prefix=classpath:/templates/
+spring.thymeleaf.suffix=.html
+# Server Configuration
+server.port=8080
+pom.xml:-
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.1</version>
+        <relativePath/>
+    </parent>
+    <groupId>com.example</groupId>
+    <artifactId>LibraryBookManagement-Hibernate</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>LibraryBookManagement-Hibernate</name>
+    <description>Spring Boot MVC with Pure Hibernate for Library Book Management</description>
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+    <dependencies>
+        <!-- Spring Boot Web (MVC) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- Thymeleaf Template Engine -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- Hibernate Core (Pure Hibernate without Spring Data JPA) -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>6.3.1.Final</version>
+        </dependency>
+        <!-- MySQL JDBC Driver -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- HikariCP Connection Pool -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+        <!-- Spring Boot DevTools (Optional - for hot reload) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Difference between using jpa,jdbc,hybernate:-
+Feature	JDBC       JDBC         	    Hibernate	          Spring Data JPA
+Configuration	   JdbcTemplate   	    SessionFactory	      EntityManager
+Entity Class	   Plain POJO	        POJO + annotations	  POJO + annotations
+DAO/Repository	   BookDAO class	    DAO with Session	  JpaRepository interface
+SQL Queries	Manual SQL	                HQL or manual SQL	  Auto-generated
+Mapping            RowMapper	        Automatic	          Automatic
+CRUD Code	       Full implementation	Full implementation	  Just interface
+Learning Curve	   Easy             	Medium	              Easy
+Performance	       Fast	                Medium	              Medium
+Control	           High	                Medium	              Low
+Boilerplate	       High	                Medium	              Low
+
+
+
