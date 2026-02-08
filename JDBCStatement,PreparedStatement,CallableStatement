@@ -1,0 +1,956 @@
+---------------------------------------------------------------------------------------JDBCStatement------------------------------------------------------------------------------------
+-----------------sql query---------------
+create database dacdatabase;
+
+use dacdatabase;
+
+create table emp (
+EMPNO INT PRIMARY KEY,
+EMPNAME VARCHAR(50),
+EMPJob VARCHAR(50),
+MGR VARCHAR(50),
+HIREDATE DATE,
+EMPSalary Float
+);
+
+ALTER TABLE emp MODIFY MGR INT; -- for changing the datatype of column 
+
+-- ALTER TABLE emp RENAME COLUMN MGR TO MANAGER_ID; -- for changing the column name
+
+INSERT INTO emp VALUES
+(101, 'RAM', 'DEV', 1001, '2022-01-10', 50000),
+(102, 'SHYAM', 'TEST', 1002, '2021-03-15', 45000),
+(103, 'MOHAN', 'HR', 1003, '2020-06-20', 40000),
+(104,'RAMAN', 'DEV',1004,'2026-02-10',60000);
+
+select * from emp;
+-----------------------code part------------------
+package Statements;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class JdbcStatement {
+	
+	public static void main(String[] args) throws ClassNotFoundException, SQLException
+	{
+		//ccdssrc = Class.forN.., Connect..,Stat.., String..,ResuSe.., Close..
+		//cmcjd,jml(jdbc fir mysql phir locah phir databsename,phir username phir password
+		
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dacdatabase","root","satyamsp");
+		
+		Statement varsmt = con.createStatement();
+		String var1 = "select * from emp";
+		
+		ResultSet rs = varsmt.executeQuery(var1);
+		
+		while(rs.next())
+		{
+		  System.out.println(rs.getInt(1) + " " +rs.getString(2) + " "+ rs.getFloat(6)); //like yahan rs.getString(3) likha hai to ye jaisa hamne table create kiya hua hota hai uske according aa jaata hai aur no. 1 start hota hai ismen
+//		    rs.getInt(1) esa kahin bhi yahan pe likhne ki jagah par rs.getObject(1) is safer yahan datatype likhne ki jagah par bas Object likh diya gaya hai which is more safer 
+      }
+		
+		rs.close();
+	}
+	//ismen stored procedure ka use nahi hua directly sql se hi isne data le liye
+}
+
+/*
+How it works
+
+SQL is sent to DB as plain text
+
+DB parses SQL
+
+DB compiles SQL
+
+DB executes SQL
+
+👉 This happens every time
+ */
+//package Statements;
+//
+//import java.sql.Connection;
+//import java.sql.DriverManager;
+//import java.sql.ResultSet;
+//import java.sql.Statement;
+//import java.sql.SQLException;
+//
+//public class JdbcStatement{
+//	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+//		Class.forName("com.mysql.cj.jdbc.Driver");
+//		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dacdatabase","root","satyamsp");
+//		Statement st = con.createStatement();
+//		String sr = "select * from EMP";
+//		ResultSet rs = st.executeQuery(sr);
+//		
+//		while(rs.next())
+//		{
+//			System.out.println(rs.getObject(1) + " " + rs.getObject(2) + " " + rs.getObject(3));
+//		}
+//		
+//		rs.close();
+//		st.close();
+//		con.close();
+//	}
+//}
+
+
+/*
+//Try Catch block use for same code:-
+package Statements;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class JdbcStatementTryCatch {
+
+    public static void main(String[] args) {
+
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            // 1. Load driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // 2. Create connection
+            con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/dacdatabase",
+                    "root",
+                    "satyamsp"
+            );
+
+            // 3. Create Statement
+            stmt = con.createStatement();
+
+            // 4. Execute query
+            String sql = "SELECT * FROM emp";
+            rs = stmt.executeQuery(sql);
+
+            // 5. Process ResultSet
+            while (rs.next()) {
+                System.out.println(
+                        rs.getInt("EMPNO") + " " +
+                        rs.getString("EMPNAME") + " " +
+                        rs.getFloat("EMPSalary")
+                );
+            }
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("MySQL Driver not found");
+            e.printStackTrace();
+
+        } catch (SQLException e) {
+            System.out.println("Database error");
+            e.printStackTrace();
+
+        } finally {
+            // 6. Close resources (VERY important)
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+ */
+
+/*
+package Statements;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class JdbcStatementTryCatch {
+
+    public static void main(String[] args) {
+
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            // 1. Load driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // 2. Create connection
+            con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/dacdatabase",
+                    "root",
+                    "satyamsp"
+            );
+
+            // 3. Create Statement
+            stmt = con.createStatement();
+
+            // 4. Execute query
+            String sql = "SELECT * FROM emp";
+            rs = stmt.executeQuery(sql);
+
+            // 5. Process ResultSet
+            while (rs.next()) {
+                System.out.println(
+                        rs.getInt("EMPNO") + " " +
+                        rs.getString("EMPNAME") + " " +
+                        rs.getFloat("EMPSalary")
+                );
+            }
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("MySQL Driver not found");
+            e.printStackTrace();
+
+        } catch (SQLException e) {
+            System.out.println("Database error");
+            e.printStackTrace();
+
+        } finally {
+            // 6. Close resources (VERY important)
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+ */
+
+/*
+ 6 things are happening mainly here:-
+ Load Driver, Create Connection, Create Statement, Execute Query, Process ResultSet,Close Resources
+ */
+
+//What is Statement here?
+
+//Statement is an interface (API) from the package:
+//
+//java.sql
+//
+//
+//It defines methods to send SQL queries to the database (like executeQuery(), executeUpdate()).
+//
+//What is varsmt?
+//
+//varsmt is a variable (reference variable).
+//
+//It does NOT live inside Statement.
+//
+//It simply holds a reference to an object that implements the Statement interface.
+//
+//What actually happens?
+//con.createStatement();
+//
+//
+//con is a Connection object.
+//
+//createStatement():
+//
+//Creates a Statement object (internally provided by the JDBC driver).
+//
+//Returns it.
+//
+//That returned object is stored in varsmt.
+//
+//📌 So the correct understanding is:
+//
+//varsmt is a reference variable that points to a Statement object created by the JDBC driver.
+
+//What is String?
+//
+//String is a class from:
+//
+//java.lang
+//
+//What is var1?
+//
+//var1 is a reference variable of type String.
+//
+//What is stored in var1?
+//
+//The String object "select * from emp" is created in memory.
+//
+//var1 holds a reference to that String object.
+
+//👉 Statement sends the query.
+//👉 ResultSet only holds the result (data) returned by the database.
+//
+//How it actually works (step-by-step)
+//Example code
+//Statement stmt = con.createStatement();
+//String query = "select * from emp";
+//
+//ResultSet rs = stmt.executeQuery(query);
+//
+//What happens internally
+//1️⃣ Query is sent
+//stmt.executeQuery(query);
+//
+//
+//stmt (Statement object) sends the SQL query to the database
+//
+//Database executes:
+//
+//select * from emp;
+//
+//
+//📌 Statement = messenger 🚚
+//
+//2️⃣ Database sends data back
+//
+//After execution, the database sends back:
+//
+//Rows
+//
+//Columns
+//
+//JDBC driver converts this data into a ResultSet object
+//
+//3️⃣ ResultSet receives & stores data
+//ResultSet rs = ...
+//
+//
+//rs now contains the table-like result
+//
+//It acts like a cursor pointing to rows of data
+//
+//📌 ResultSet = container + pointer 📦👉
+//
+//What exactly is ResultSet?
+//
+//It is an interface in java.sql
+//
+//Represents data returned from a SELECT query
+//
+//Works like a table in memory
+
+
+
+
+
+/*
+above here 5 things are imported which are classes from JDBC API(java.sql package)
+
+🔹 Connection
+import java.sql.Connection;
+
+What is Connection?
+
+Represents a connection between Java program and database
+
+Without Connection, Java cannot talk to MySQL
+
+Think of it like:
+
+a cable connecting Java ↔ Database
+
+🔹 DriverManager
+import java.sql.DriverManager;
+
+What is DriverManager?
+
+Used to establish the database connection
+
+It selects the correct JDBC driver (MySQL here)
+
+Used in:
+
+DriverManager.getConnection(...)
+
+🔹 Statement
+import java.sql.Statement;
+
+What is Statement?
+
+Used to send SQL queries to the database
+
+Executes:
+
+SELECT
+
+INSERT
+
+UPDATE
+
+DELETE
+
+Example:
+
+Statement stmt = con.createStatement();
+
+🔹 ResultSet
+import java.sql.ResultSet;
+
+What is ResultSet?
+
+Holds the result returned by SELECT query
+
+Works like a table with rows and columns
+
+Cursor moves row by row
+
+Example:
+
+while(rs.next()) { ... }
+
+🔹 SQLException
+import java.sql.SQLException;
+
+What is SQLException?
+
+Handles database-related errors
+
+Example errors:
+
+Wrong password
+
+Table not found
+
+Syntax error in SQL
+
+3️⃣ Class declaration
+public class JdbcStatement {
+
+What does this mean?
+
+public → accessible from anywhere
+
+class JdbcStatement → class name (must match file name)
+
+File name must be:
+
+JdbcStatement.java
+
+4️⃣ main method
+public static void main(String[] args) 
+        throws ClassNotFoundException, SQLException
+
+Why main?
+
+JVM starts execution from here
+
+What is throws ClassNotFoundException?
+
+Happens if JDBC driver is not found
+
+Related to this line:
+
+Class.forName("com.mysql.cj.jdbc.Driver");
+
+What is throws SQLException?
+
+Happens if:
+
+DB is down
+
+Credentials are wrong
+
+Query fails
+
+You chose throws instead of try-catch
+✔ OK for learning
+⚠ Not recommended for production
+
+5️⃣ Load MySQL JDBC Driver
+Class.forName("com.mysql.cj.jdbc.Driver");
+
+What is this?
+
+Loads MySQL JDBC driver into memory
+
+Registers driver with DriverManager
+
+Think of it as:
+
+“Hey Java, I want to talk to MySQL”
+
+📌 In newer JDBC versions, this is optional, but still asked in interviews.
+
+6️⃣ Create database connection
+Connection con = DriverManager.getConnection(
+    "jdbc:mysql://localhost:3306/dacdatabase",
+    "root",
+    "satyamsp"
+);
+
+Breakdown:
+Part	Meaning
+jdbc:mysql://	JDBC protocol + MySQL
+localhost	DB running on same machine
+3306	MySQL default port
+dacdatabase	Database name
+root	Username
+satyamsp	Password
+
+✔ This line opens the connection
+
+7️⃣ Create Statement object
+Statement varsmt = con.createStatement();
+
+What happens here?
+
+Creates a Statement object
+
+This object is used to execute SQL queries
+
+8️⃣ SQL query string
+String var1 = "select * from emp";
+
+
+SQL written as a Java String
+
+Can be dynamic also
+
+9️⃣ Execute query
+ResultSet rs = varsmt.executeQuery(var1);
+
+What happens?
+
+SQL is sent to DB
+
+DB executes it
+
+Result comes back and stored in ResultSet
+
+📌 executeQuery() → used only for SELECT
+
+🔟 Reading data from ResultSet
+while(rs.next())
+{
+    System.out.println(
+        rs.getInt("EMPNO") + " " +
+        rs.getString(2) + " " +
+        rs.getFloat(6)
+    );
+}
+
+rs.next()
+
+Moves cursor to next row
+
+Returns false when no rows left
+
+Column access methods
+Method	Meaning
+getInt("EMPNO")	Get INT column by name
+getString(2)	Get 2nd column
+getFloat(6)	Get 6th column
+
+📌 Index starts from 1, not 0
+
+1️⃣1️⃣ Close ResultSet
+rs.close();
+
+Why close?
+
+Frees memory
+
+Avoids resource leak
+
+👉 Ideally also close:
+
+varsmt.close();
+con.close();
+
+🔚 FULL FLOW (one line)
+
+Load driver → Create connection → Create statement → Execute query → Process ResultSet → Close resources
+
+Interview-ready summary 🧠
+
+This program demonstrates JDBC using Statement API to connect to MySQL, execute a SELECT query, retrieve data using ResultSet, and display employee details.
+
+ */
+
+/*
+dynamic sql but sql injection attack risk:-
+
+Use dynamic SQL (using Statement)
+
+Dynamic SQL = query changes at runtime.
+
+Example: fetch employee by EMPNO
+
+int empNo = 101;
+
+String sql = "SELECT * FROM emp WHERE EMPNO = " + empNo;
+rs = stmt.executeQuery(sql);
+
+🔥 Problem with this approach
+
+If input comes from user:
+
+int empNo = 101 OR 1=1;
+
+
+👉 SQL Injection attack 😨
+This is why Statement is dangerous.
+*/
+
+
+-------------------------------------------------------------------------------PreparedStatement-----------------------------------------------------------------------
+--------------------sql query------------
+create database dacdatabase;
+
+use dacdatabase;
+
+create table emp (
+EMPNO INT PRIMARY KEY,
+EMPNAME VARCHAR(50),
+EMPJob VARCHAR(50),
+MGR VARCHAR(50),
+HIREDATE DATE,
+EMPSalary Float
+);
+
+ALTER TABLE emp MODIFY MGR INT; -- for changing the datatype of column 
+
+-- ALTER TABLE emp RENAME COLUMN MGR TO MANAGER_ID; -- for changing the column name
+
+INSERT INTO emp VALUES
+(101, 'RAM', 'DEV', 1001, '2022-01-10', 50000),
+(102, 'SHYAM', 'TEST', 1002, '2021-03-15', 45000),
+(103, 'MOHAN', 'HR', 1003, '2020-06-20', 40000),
+(104,'RAMAN', 'DEV',1004,'2026-02-10',60000);
+
+select * from emp;
+------------------code part---------------
+//JdbcStatement jaisa hi hota hai but ResultSet men parentheses ke andar jo sql varaible ka 
+// likhte hain vahi prepared statement men likh dete hain phir vo ResultSet men likhna nahi padta hai
+//Statement ki jagah par jaisa vahan normal parentheses Statement create ke baad lagta tha
+//PreparedStatement ko prepare karke uske parentheses ke andar sql query store jis variable men hua vo hi use hoga
+//PreparedStatement ko import karna padta hai
+
+package Statements;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.ResultSet;
+
+
+public class JdbcPreparedStatement {
+	public static void main(String[] args) throws ClassNotFoundException, SQLException{
+		
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dacdatabase","root","satyamsp");
+		String sr = "select * from emp";
+		PreparedStatement ps = con.prepareStatement(sr);
+		ResultSet rs = ps.executeQuery();
+		
+		while(rs.next())
+		{
+			System.out.println(rs.getObject(1) + " " + rs.getObject(2) + " " + rs.getObject(3));
+		}
+		
+		rs.close();
+		ps.close();
+		con.close();
+
+	}
+
+}
+
+
+/*
+package com.cdac;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Scanner;
+
+public class jdbcPreparedStatement
+{
+
+	public static void main(String[] args) throws ClassNotFoundException, SQLException 
+	{
+	
+		//load the driver
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		Connection con =DriverManager.getConnection("jdbc:mysql://localhost:3306/dbda","root","cdacacts");
+		String q1 = "select * from emp where empno = ?";
+		PreparedStatement pmt =con.prepareStatement(q1);
+		System.out.println("enter the empno to search");
+		Scanner s = new Scanner(System.in);
+		int no = s.nextInt(); 
+		pmt.setInt(1, no); in place of question first question mark no will go and that will be selected here
+		ResultSet rs =pmt.executeQuery();
+		 while(rs.next())
+         {
+       	  System.out.println(rs.getInt("EMPNO")+ " "+ rs.getString(2)+ " "+rs.getFloat(6) );
+         }
+         
+		 rs.close();
+
+	} 
+}
+
+
+
+*/
+
+--------------------------------------------------------------------------------CallableStatement------------------------------------------------------------------------------
+---------------sql query-------------
+create database dacdatabase;
+
+use dacdatabase;
+
+create table emp (
+EMPNO INT PRIMARY KEY,
+EMPNAME VARCHAR(50),
+EMPJob VARCHAR(50),
+MGR VARCHAR(50),
+HIREDATE DATE,
+EMPSalary Float
+);
+
+ALTER TABLE emp MODIFY MGR INT; -- for changing the datatype of column 
+
+-- ALTER TABLE emp RENAME COLUMN MGR TO MANAGER_ID; -- for changing the column name
+
+INSERT INTO emp VALUES
+(101, 'RAM', 'DEV', 1001, '2022-01-10', 50000),
+(102, 'SHYAM', 'TEST', 1002, '2021-03-15', 45000),
+(103, 'MOHAN', 'HR', 1003, '2020-06-20', 40000),
+(104,'RAMAN', 'DEV',1004,'2026-02-10',60000);
+
+select * from emp;
+
+Delimiter $$
+create procedure getEmpdetails(IN emp INT)
+BEGIN
+select * from EMP where EMPNO = emp;
+END$$
+Delimiter ;
+
+Delimiter $$
+create procedure getEmpdetailss()
+BEGIN
+select * from EMP;
+END$$
+Delimiter ;
+
+show procedure status;
+select * from emp;
+
+DELIMITER $$
+CREATE PROCEDURE getEmpNameh(
+IN dno VARCHAR(50),
+OUT ename VARCHAR(50)
+)
+BEGIN
+SELECT EMPNAME 
+INTO ename 
+FROM  emp 
+where EMPJOB = dno 
+order by EMPSALARY DESC 
+LIMIT 1;
+END$$
+
+DELIMITER ;
+
+call getEmpNameh('DEV',@name);
+select @name;
+select concat(@name,' is getting highest salary');
+select concat(@name,' is getting highest salary') as result; -- result column name hai yahan hamne de diya hai jo output men show hoga usmen phir details
+
+---------------code part-------------
+//ismen sql alag se likhne ki jaroorat nahi
+//directly CallableStatement men prepareCall ke andar jo mysql men procedure create kiya gaya hoga 
+//usi ka use yahan pe ho jaata hai to sql likhne ki jaroorat nahi hai
+
+//package Statements;
+//
+//import java.sql.CallableStatement;
+//import java.sql.Connection;
+//import java.sql.DriverManager;
+//import java.sql.ResultSet;
+//import java.sql.SQLException;
+//import java.sql.Types;
+//import java.util.Scanner;
+//
+//public class JdbcCallableStatement {
+//	
+//	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+//		
+//		Class.forName("com.mysql.cj.jdbc.Driver");
+//		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dacdatabase","root","satyamsp");
+//		
+//		System.out.println("get connection with database");
+//		
+//		CallableStatement cmt = con.prepareCall("{call getEmpdetails()}");
+//		System.out.println("enter the emp no");
+//		Scanner sc = new Scanner(System.in);
+//		int eno = sc.nextInt();
+//		cmt.setInt(1, eno);
+//		
+//		ResultSet rs = cmt.executeQuery();
+//		
+//		if(!rs.isBeforeFirst())
+//		{
+//			System.out.println("No emp found");
+//		}
+//		else {
+//			while(rs.next())
+//			{
+//				System.out.println(rs.getInt("EMPNO") + " " + rs.getString(2) + " " + rs.getFloat(6));
+//			}
+//		}
+//		
+//	}
+//}
+
+//package Statements;
+//
+//import java.sql.CallableStatement;
+//import java.sql.Connection;
+//import java.sql.DriverManager;
+//import java.sql.ResultSet;
+//import java.sql.SQLException;
+//import java.sql.Types;
+//import java.util.Scanner;
+//
+//public class JdbcCallableStatement {
+//	
+//	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+//		
+//		Class.forName("com.mysql.cj.jdbc.Driver");
+//		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dacdatabase","root","satyamsp");
+//		
+//		System.out.println("get connection with database");
+//		
+//		CallableStatement cmt = con.prepareCall("{call getEmpdetailss()}");
+//		
+//		System.out.println("Do you want to see all employee details");
+//		Scanner  sc = new Scanner(System.in);
+//		String sr = sc.next();
+//		if(sr.equalsIgnoreCase("yes")){
+//			ResultSet rs = cmt.executeQuery();
+//			
+//			if(!rs.isBeforeFirst())
+//			{
+//				System.out.println("Employee not found");
+//				
+//			}
+//			
+//			else {
+//				while(rs.next())
+//				{
+//					System.out.println(rs.getInt("EmpNo") + " " + rs.getString(2) + " " + rs.getFloat(6));
+//				}
+//			}
+//		}
+//			
+//		
+//		else
+//		{ 
+//			System.out.println("then okh");
+//			
+//		}
+//		
+//		sc.close();
+//		con.close();
+//	}
+//}
+
+package Statements;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Scanner;
+
+public class JdbcCallableStatement {
+
+    public static void main(String[] args) throws ClassNotFoundException, SQLException {
+
+        // 1️⃣ Load driver
+        Class.forName("com.mysql.cj.jdbc.Driver");
+
+        // 2️⃣ Get connection
+        Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/dacdatabase",
+                "root",
+                "satyamsp"
+        );
+
+        System.out.println("Connected to database");
+
+        // 3️⃣ Prepare CallableStatement (IN + OUT)
+        CallableStatement cmt =
+                con.prepareCall("{ call getEmpNameh(?, ?) }");
+
+        // 4️⃣ Take input
+        Scanner s = new Scanner(System.in);
+        System.out.println("Enter the department number:");
+        String dno = s.next();
+
+        // 5️⃣ Set IN parameter
+        cmt.setString(1, dno);
+
+        // 6️⃣ Register OUT parameter
+        cmt.registerOutParameter(2, Types.VARCHAR);
+
+        // 7️⃣ Execute stored procedure
+        cmt.execute();
+
+        // 8️⃣ Get OUT parameter value
+        String ename = cmt.getString(2);
+
+        // 9️⃣ Display result
+        if (ename != null) {
+            System.out.println(ename + " is getting max salary");
+        } else {
+            System.out.println("No employee found for given department");
+        }
+
+        // 🔟 Close resources
+        s.close();
+        cmt.close();
+        con.close();
+    }
+}
+
+
+/*
+ 
+if (!rs.isBeforeFirst()) {
+
+    System.out.println("No employee found with this emp number");
+
+}
+
+In the context of JDBC (Java Database Connectivity), this code snippet is used to check if a ResultSet contains any data before you attempt to read from it.
+While many developers use if (!rs.next()) to check for empty results, using .isBeforeFirst() has a specific advantage:
+
+Non-Destructive: isBeforeFirst() only checks the position of the cursor; it doesn't move it.
+
+rs.next() Moves the Cursor: When you call rs.next(), the cursor moves to the first row. If you only wanted to check for existence but needed the cursor to stay at the beginning for a later loop, isBeforeFirst() is safer.
+ */
+
+
