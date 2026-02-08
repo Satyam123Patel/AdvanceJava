@@ -953,4 +953,526 @@ Non-Destructive: isBeforeFirst() only checks the position of the cursor; it does
 rs.next() Moves the Cursor: When you call rs.next(), the cursor moves to the first row. If you only wanted to check for existence but needed the cursor to stay at the beginning for a later loop, isBeforeFirst() is safer.
  */
 
+------------------------------------------------------------------------Lab Work-------------------------------------------------------------
+In this project Tomcat 9.0, jdk-17, dynamic web module version 4.0 are used , in code part javax is used 
+MVCWebAppCrud
+│
+├── src
+│   └── main
+│       ├── java
+│       │   └── com
+│       │       └── doing
+│       │           │   ├── AddStudentServlet.java
+│       │           │   ├── DeleteStudentServlet.java
+│       │           │   ├── UpdateStudentServlet.java
+│       │           │   └── ViewStudentsServlet.java
+│       │           │   └── StudentDAO.java
+│       │               └── Student.java
+│       └── webapp
+│           ├── addStudent.jsp        
+│           ├── updateStudent.jsp
+│           ├── viewStudents.jsp
+│           ├── success.jsp
+│           └── WEB-INF
+│               ├── lib
+│               │   ├── mysql-connector-j-8.x.x.jar
+│               │   └── jstl-1.2.jar
+│               │
+│               └── web.xml
+│
+└── Tomcat Server
+
+Student.java:-
+	//variables private men declare kiye, phir method banaye getter,setter ki
+	//is pojo class men bas itna hi karna hai ye data hold by pojo class in java memory
+	//POJO = Plain Old Java Object
+	//this class is like a container 
+	//DAO(data access object is class se data le leti hai and convert into mysql and save into mysql 
+
+	//Jsp form se kuch gaya servlet men  data pojo men phir servlet save karta hai phir servlet is data ko phir dao ko send kar deta hai use leta hai sql men convert karta hai phir mysql men permanently  save kar deta hai
+	//POJO stores data in Java memory, Servlet fills it, DAO saves it to MySQL.
+	//👉 POJO = data holder only
+	//👉 Servlet = controls flow & mapping
+	//👉 DAO = actual database save
+package com.doing;
+
+public class Student {
+	/*
+	 varialbes banaye private men phir method banaye get ,setter used it (ye javaBean class hai as it have private variables and public getters and setters
+	 here encapsulation is used as hiding internal details and through getter and setter we are accessing the varaibles here 
+	 */
+	private int id;
+    private String name;
+    private String email;
+    private float marks;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public float getMarks() {
+        return marks;
+    }
+
+    public void setMarks(float marks) {
+        this.marks = marks;
+    }
+}
+
+
+
+
+StudentDAO.java:-
+package com.doing;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class StudentDAO {
+
+    // ====== DB CONNECTION ======
+    private Connection getConnection() {
+        Connection con = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/labwork?useSSL=false&serverTimezone=UTC",
+                "root",
+                "satyamsp"
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return con;
+    }
+
+    /* ========= CREATE ========= */
+    public void addStudent(Student s) {
+        String sql = "INSERT INTO student(name,email,marks) VALUES(?,?,?)";
+
+        try {
+            Connection con = getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+
+            ps.setString(1, s.getName());
+            ps.setString(2, s.getEmail());
+            ps.setFloat(3, s.getMarks());
+
+            ps.executeUpdate();
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /* ========= READ ========= */
+    public List<Student> getAllStudents() {
+        List<Student> list = new ArrayList<>();
+        String sql = "SELECT * FROM student";
+
+        try {
+            Connection con = getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Student s = new Student();
+                s.setId(rs.getInt("id"));
+                s.setName(rs.getString("name"));
+                s.setEmail(rs.getString("email"));
+                s.setMarks(rs.getFloat("marks"));
+                list.add(s);
+            }
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /* ========= READ (BY ID) ========= */
+    public Student getStudentById(int id) {
+        Student s = new Student();
+        String sql = "SELECT * FROM student WHERE id=?";
+
+        try {
+            Connection con = getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, id);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                s.setId(rs.getInt("id"));
+                s.setName(rs.getString("name"));
+                s.setEmail(rs.getString("email"));
+                s.setMarks(rs.getFloat("marks"));
+            }
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return s;
+    }
+
+    /* ========= UPDATE ========= */
+    public void updateStudent(Student s) {
+        String sql = "UPDATE student SET name=?, email=?, marks=? WHERE id=?";
+
+        try {
+            Connection con = getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+
+            ps.setString(1, s.getName());
+            ps.setString(2, s.getEmail());
+            ps.setFloat(3, s.getMarks());
+            ps.setInt(4, s.getId());
+
+            ps.executeUpdate();
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /* ========= DELETE ========= */
+    public void deleteStudent(int id) {
+        String sql = "DELETE FROM student WHERE id=?";
+
+        try {
+            Connection con = getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, id);
+
+            ps.executeUpdate();
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+AddStudentServlet.java:-
+package com.doing;
+
+//import javax.servlet.*;
+//import javax.servlet.http.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+//at here we can add this in place of using web.xml in all servlet files here as it is a modern approach
+//@WebServlet("/AddStudentServlet")
+//for delete,update,view all these servlets also in place of doing for these in web.xml we can do it in by using this simple way
+public class AddStudentServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+            throws ServletException, IOException {
+
+        try {
+            Student s = new Student();
+            s.setName(req.getParameter("name"));
+            s.setEmail(req.getParameter("email"));
+            s.setMarks(Float.parseFloat(req.getParameter("marks")));
+
+            StudentDAO dao = new StudentDAO();
+            dao.addStudent(s);
+
+            res.sendRedirect("success.jsp");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+DeleteStudentServlet.java:-
+package com.doing;
+
+//import javax.servlet.*;
+//import javax.servlet.http.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+public class DeleteStudentServlet extends HttpServlet {
+
+    protected void doGet(HttpServletRequest req, HttpServletResponse res)
+            throws ServletException, IOException {
+
+        try {
+            int id = Integer.parseInt(req.getParameter("id"));
+
+            StudentDAO dao = new StudentDAO();
+            dao.deleteStudent(id);
+
+            res.sendRedirect("ViewStudentsServlet");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+UpdateStudentServlet.java:-
+package com.doing;
+
+//import javax.servlet.*;
+//import javax.servlet.http.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+public class UpdateStudentServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+            throws ServletException, IOException {
+
+        try {
+            Student s = new Student();
+            s.setId(Integer.parseInt(req.getParameter("id")));
+            s.setName(req.getParameter("name"));
+            s.setEmail(req.getParameter("email"));
+            s.setMarks(Float.parseFloat(req.getParameter("marks")));
+
+            StudentDAO dao = new StudentDAO();
+            dao.updateStudent(s);
+
+            res.sendRedirect("ViewStudentsServlet");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+ViewStudentsServlet.java:-
+package com.doing;
+
+//import javax.servlet.*;
+//import javax.servlet.http.*;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.util.List;
+
+public class ViewStudentsServlet extends HttpServlet {
+
+    protected void doGet(HttpServletRequest req, HttpServletResponse res)
+            throws ServletException, IOException {
+
+        try {
+            StudentDAO dao = new StudentDAO();
+            List<Student> list = dao.getAllStudents();
+
+            req.setAttribute("students", list);
+            RequestDispatcher rd = req.getRequestDispatcher("viewStudents.jsp");
+            rd.forward(req, res);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+addStudent.jsp           
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Project</title>
+</head>
+<body>
+<h2>Add Student</h2>
+
+<form action="AddStudentServlet" method ="post">
+Name:<input type="text" name="name"><br><br>
+Email:<input type="text" name="email"><br><br>
+Marks:<input type="text" name="marks"><br><br>
+<input type="submit" value = "Add Student">
+</form>
+
+<a href = "ViewStudentsServlet">View Student</a>
+</body>
+</html>
+
+updateStudent.jsp                  
+<%@ page import="com.doing.*" %>
+<%
+    int id = Integer.parseInt(request.getParameter("id"));
+    StudentDAO dao = new StudentDAO();
+    Student s = dao.getStudentById(id);
+%>
+
+<html>
+<body>
+<h2>Update Student</h2>
+
+<form action="UpdateStudentServlet" method="post">
+    <input type="hidden" name="id" value="<%=s.getId()%>">
+
+    Name: <input type="text" name="name" value="<%=s.getName()%>"><br><br>
+    Email: <input type="text" name="email" value="<%=s.getEmail()%>"><br><br>
+    Marks: <input type="text" name="marks" value="<%=s.getMarks()%>"><br><br>
+
+    <input type="submit" value="Update Student">
+</form>
+</body>
+</html>
+
+
+viewStudents.jsp                   
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Project</title>
+</head>
+
+<body>
+<h2>Student List</h2>
+
+<table border = "1">
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Marks</th>
+<th>Action</th>
+</tr>
+
+<c:forEach var="s" items="${students}">
+<tr>
+<td>${s.id}</td>
+<td>${s.name}</td>
+<td>${s.email}</td>
+<td>${s.marks}</td>
+<td>
+<a href = "DeleteStudentServlet?id=${s.id}">Delete</a>
+<a href = "updateStudent.jsp?id=${s.id}">Update</a>
+</td>
+</tr>
+
+</c:forEach>
+</table>
+
+</body>
+</html>
+
+
+success.jsp:-
+<html>
+<body>
+<h2>Student Added Successfully!</h2>
+
+<a href="addStudent.jsp">Add Another Student</a><br>
+<a href="ViewStudentsServlet">View Students</a>
+
+</body>
+</html>
+
+
+
+web.xml:-
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd" id="WebApp_ID" version="4.0">
+  <display-name>MVCWebAppCrudOperusingJdbc</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.xhtml</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.xhtml</welcome-file>
+  </welcome-file-list>
+  
+    <!-- Add Student -->
+    <servlet>
+        <servlet-name>AddStudent</servlet-name>
+        <servlet-class>com.doing.AddStudentServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AddStudent</servlet-name>
+        <url-pattern>/AddStudentServlet</url-pattern>
+    </servlet-mapping>
+
+    <!-- View Students -->
+    <servlet>
+        <servlet-name>ViewStudents</servlet-name>
+        <servlet-class>com.doing.ViewStudentsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ViewStudents</servlet-name>
+        <url-pattern>/ViewStudentsServlet</url-pattern>
+    </servlet-mapping>
+
+    <!-- Update Student -->
+    <servlet>
+        <servlet-name>UpdateStudent</servlet-name>
+        <servlet-class>com.doing.UpdateStudentServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UpdateStudent</servlet-name>
+        <url-pattern>/UpdateStudentServlet</url-pattern>
+    </servlet-mapping>
+
+    <!-- Delete Student -->
+    <servlet>
+        <servlet-name>DeleteStudent</servlet-name>
+        <servlet-class>com.doing.DeleteStudentServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeleteStudent</servlet-name>
+        <url-pattern>/DeleteStudentServlet</url-pattern>
+    </servlet-mapping>
+
+</web-app>
 
