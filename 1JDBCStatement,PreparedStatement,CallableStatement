@@ -954,6 +954,7 @@ rs.next() Moves the Cursor: When you call rs.next(), the cursor moves to the fir
  */
 
 ------------------------------------------------------------------------Lab Work-------------------------------------------------------------
+Q.)Add Database CRUD operations to MVC web application using JDBC Classes  
 In this project Tomcat 9.0, jdk-17, dynamic web module version 4.0 are used , in code part javax is used 
 MVCWebAppCrud
 │
