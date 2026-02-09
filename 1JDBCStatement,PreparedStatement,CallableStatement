@@ -1477,3 +1477,2114 @@ web.xml:-
 
 </web-app>
 
+----------------------------------------------------refined code for this same----------------------------------------------
+
+Complete Step-by-Step Guide: Creating MVC Web Application with JDBC in Eclipse
+Part 1: Eclipse Setup and Project Creation
+Step 1: Create New Dynamic Web Project
+
+Open Eclipse IDE
+
+Make sure you have Eclipse IDE for Enterprise Java and Web Developers
+
+
+Create New Project:
+
+   File → New → Dynamic Web Project
+
+Configure Project Settings:
+
+   Project Name: StudentManagementSystem
+   
+   Target Runtime: 
+   - Click "New Runtime"
+   - Select "Apache Tomcat v9.0" (recommended) or "Apache Tomcat v10.1"
+   - Click Next
+   - Browse to your Tomcat installation directory
+   - Click Finish
+   
+   Dynamic Web Module Version: 4.0
+   
+   Configuration: Default Configuration
+   
+   JRE: Use default JRE (JDK 17 or JDK 11)
+
+Click "Next" twice
+Web Module Settings:
+
+   Context Root: StudentManagementSystem
+   Content Directory: WebContent
+   ✓ Generate web.xml deployment descriptor (CHECK THIS BOX)
+
+Click "Finish"
+
+
+Part 2: Complete Folder Structure in Eclipse
+After creating the project, here's the EXACT folder structure you'll see and create:
+StudentManagementSystem
+│
+├── Java Resources
+│   └── src
+│       └── main
+│           └── java
+│               ├── com
+│               │   ├── controller
+│               │   │   ├── AddStudentServlet.java
+│               │   │   ├── ViewStudentsServlet.java
+│               │   │   ├── EditStudentServlet.java
+│               │   │   ├── UpdateStudentServlet.java
+│               │   │   └── DeleteStudentServlet.java
+│               │   │
+│               │   ├── dao
+│               │   │   ├── StudentDAO.java
+│               │   │   └── StudentDAOImpl.java
+│               │   │
+│               │   ├── model
+│               │   │   └── Student.java
+│               │   │
+│               │   └── util
+│               │       └── DBConnection.java
+│               │
+│               └── com.test (optional - for testing)
+│                   └── TestStudentDAO.java
+│
+├── WebContent
+│   ├── META-INF
+│   │   └── MANIFEST.MF
+│   │
+│   ├── WEB-INF
+│   │   ├── lib
+│   │   │   └── mysql-connector-j-8.0.33.jar (you'll add this)
+│   │   │
+│   │   └── web.xml
+│   │
+│   ├── index.jsp
+│   ├── add-student.jsp
+│   ├── view-students.jsp
+│   └── edit-student.jsp
+│
+├── build
+│   └── classes (auto-generated)
+│
+└── Libraries
+    ├── Apache Tomcat v9.0
+    └── JRE System Library
+
+Part 3: Step-by-Step File Creation in Eclipse
+STEP 1: Create Package Structure
+Right-click on src/main/java → New → Package
+Create these 4 packages one by one:
+
+com.model
+com.dao
+com.util
+com.controller
+com.test (optional)
+
+
+STEP 2: Add MySQL Connector JAR
+
+Download MySQL Connector:
+
+Go to: https://dev.mysql.com/downloads/connector/j/
+Download: mysql-connector-j-8.0.33.jar (Platform Independent)
+Extract the ZIP file
+
+
+Add to Project:
+
+   Right-click on project → Build Path → Configure Build Path
+   → Libraries tab → Add External JARs
+   → Browse to downloaded mysql-connector-j-8.0.33.jar
+   → Click Apply and Close
+
+Copy to WEB-INF/lib:
+
+   - Create 'lib' folder inside WebContent/WEB-INF/ (if not exists)
+   - Copy mysql-connector-j-8.0.33.jar into WebContent/WEB-INF/lib/
+
+STEP 3: Create Database
+Open MySQL Workbench or Command Line and run:
+sql-- Create Database
+CREATE DATABASE IF NOT EXISTS student_management;
+USE student_management;
+
+-- Create Students Table
+CREATE TABLE IF NOT EXISTS students (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    course VARCHAR(50) NOT NULL,
+    age INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Insert Sample Data
+INSERT INTO students (name, email, course, age) VALUES
+('John Doe', 'john.doe@example.com', 'Computer Science', 20),
+('Jane Smith', 'jane.smith@example.com', 'Engineering', 21),
+('Mike Johnson', 'mike.johnson@example.com', 'Mathematics', 19),
+('Sarah Williams', 'sarah.williams@example.com', 'Physics', 22);
+
+-- Verify
+SELECT * FROM students;
+```
+
+---
+
+### STEP 4: Create Java Files
+
+Now create each file in Eclipse:
+
+#### FILE 1: Student.java (Model)
+
+**Location:** `src/main/java/com/model/Student.java`
+
+**How to create:**
+```
+Right-click on 'com.model' package → New → Class
+Class Name: Student
+Click Finish
+Copy this code:
+javapackage com.model;
+
+import java.sql.Timestamp;
+
+public class Student {
+    private int id;
+    private String name;
+    private String email;
+    private String course;
+    private int age;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+    
+    // Default Constructor
+    public Student() {
+    }
+    
+    // Constructor without ID (for insert)
+    public Student(String name, String email, String course, int age) {
+        this.name = name;
+        this.email = email;
+        this.course = course;
+        this.age = age;
+    }
+    
+    // Constructor with ID (for update)
+    public Student(int id, String name, String email, String course, int age) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.course = course;
+        this.age = age;
+    }
+    
+    // Full Constructor
+    public Student(int id, String name, String email, String course, int age, 
+                   Timestamp createdAt, Timestamp updatedAt) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.course = course;
+        this.age = age;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+    
+    // Getters and Setters
+    public int getId() {
+        return id;
+    }
+    
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public String getEmail() {
+        return email;
+    }
+    
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    
+    public String getCourse() {
+        return course;
+    }
+    
+    public void setCourse(String course) {
+        this.course = course;
+    }
+    
+    public int getAge() {
+        return age;
+    }
+    
+    public void setAge(int age) {
+        this.age = age;
+    }
+    
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+    
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+    
+    @Override
+    public String toString() {
+        return "Student{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", course='" + course + '\'' +
+                ", age=" + age +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
+}
+```
+
+---
+
+#### FILE 2: DBConnection.java (Utility)
+
+**Location:** `src/main/java/com/util/DBConnection.java`
+
+**How to create:**
+```
+Right-click on 'com.util' package → New → Class
+Class Name: DBConnection
+Click Finish
+Copy this code:
+javapackage com.util;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DBConnection {
+    
+    // Database credentials - CHANGE THESE ACCORDING TO YOUR SETUP
+    private static final String URL = "jdbc:mysql://localhost:3306/student_management";
+    private static final String USERNAME = "root";
+    private static final String PASSWORD = "root"; // Change to your MySQL password
+    private static final String DRIVER_CLASS = "com.mysql.cj.jdbc.Driver";
+    
+    // Static block to load the driver
+    static {
+        try {
+            Class.forName(DRIVER_CLASS);
+            System.out.println("MySQL JDBC Driver loaded successfully");
+        } catch (ClassNotFoundException e) {
+            System.err.println("MySQL JDBC Driver not found");
+            e.printStackTrace();
+            throw new RuntimeException("Failed to load JDBC driver", e);
+        }
+    }
+    
+    // Method to get database connection
+    public static Connection getConnection() throws SQLException {
+        try {
+            Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            System.out.println("Database connection established");
+            return connection;
+        } catch (SQLException e) {
+            System.err.println("Failed to establish database connection");
+            e.printStackTrace();
+            throw e;
+        }
+    }
+    
+    // Method to close connection
+    public static void closeConnection(Connection connection) {
+        if (connection != null) {
+            try {
+                connection.close();
+                System.out.println("Database connection closed");
+            } catch (SQLException e) {
+                System.err.println("Error closing database connection");
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    // Test connection method
+    public static void testConnection() {
+        Connection connection = null;
+        try {
+            connection = getConnection();
+            if (connection != null && !connection.isClosed()) {
+                System.out.println("✓ Connection test successful!");
+            }
+        } catch (SQLException e) {
+            System.err.println("✗ Connection test failed!");
+            e.printStackTrace();
+        } finally {
+            closeConnection(connection);
+        }
+    }
+    
+    // Main method for testing
+    public static void main(String[] args) {
+        testConnection();
+    }
+}
+```
+
+**IMPORTANT:** Change `PASSWORD` to your MySQL password!
+
+---
+
+#### FILE 3: StudentDAO.java (Interface)
+
+**Location:** `src/main/java/com/dao/StudentDAO.java`
+
+**How to create:**
+```
+Right-click on 'com.dao' package → New → Interface
+Interface Name: StudentDAO
+Click Finish
+Copy this code:
+javapackage com.dao;
+
+import com.model.Student;
+import java.sql.SQLException;
+import java.util.List;
+
+public interface StudentDAO {
+    
+    // Create - Insert a new student
+    boolean addStudent(Student student) throws SQLException;
+    
+    // Read - Get student by ID
+    Student getStudentById(int id) throws SQLException;
+    
+    // Read - Get all students
+    List<Student> getAllStudents() throws SQLException;
+    
+    // Update - Update student information
+    boolean updateStudent(Student student) throws SQLException;
+    
+    // Delete - Delete student by ID
+    boolean deleteStudent(int id) throws SQLException;
+    
+    // Additional methods
+    List<Student> searchStudentsByName(String name) throws SQLException;
+    List<Student> getStudentsByCourse(String course) throws SQLException;
+    boolean isEmailExists(String email) throws SQLException;
+    int getTotalStudentCount() throws SQLException;
+}
+```
+
+---
+
+#### FILE 4: StudentDAOImpl.java (DAO Implementation)
+
+**Location:** `src/main/java/com/dao/StudentDAOImpl.java`
+
+**How to create:**
+```
+Right-click on 'com.dao' package → New → Class
+Class Name: StudentDAOImpl
+Interfaces: Click 'Add' → StudentDAO
+Click Finish
+Copy this code:
+javapackage com.dao;
+
+import com.model.Student;
+import com.util.DBConnection;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class StudentDAOImpl implements StudentDAO {
+    
+    // SQL Queries
+    private static final String INSERT_STUDENT = 
+        "INSERT INTO students (name, email, course, age) VALUES (?, ?, ?, ?)";
+    
+    private static final String SELECT_STUDENT_BY_ID = 
+        "SELECT * FROM students WHERE id = ?";
+    
+    private static final String SELECT_ALL_STUDENTS = 
+        "SELECT * FROM students ORDER BY id DESC";
+    
+    private static final String UPDATE_STUDENT = 
+        "UPDATE students SET name = ?, email = ?, course = ?, age = ? WHERE id = ?";
+    
+    private static final String DELETE_STUDENT = 
+        "DELETE FROM students WHERE id = ?";
+    
+    private static final String SEARCH_STUDENTS_BY_NAME = 
+        "SELECT * FROM students WHERE name LIKE ? ORDER BY name";
+    
+    private static final String SELECT_STUDENTS_BY_COURSE = 
+        "SELECT * FROM students WHERE course = ? ORDER BY name";
+    
+    private static final String CHECK_EMAIL_EXISTS = 
+        "SELECT COUNT(*) FROM students WHERE email = ?";
+    
+    private static final String COUNT_STUDENTS = 
+        "SELECT COUNT(*) FROM students";
+    
+    @Override
+    public boolean addStudent(Student student) throws SQLException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        boolean isAdded = false;
+        
+        try {
+            connection = DBConnection.getConnection();
+            preparedStatement = connection.prepareStatement(INSERT_STUDENT, 
+                                                           Statement.RETURN_GENERATED_KEYS);
+            
+            preparedStatement.setString(1, student.getName());
+            preparedStatement.setString(2, student.getEmail());
+            preparedStatement.setString(3, student.getCourse());
+            preparedStatement.setInt(4, student.getAge());
+            
+            int rowsAffected = preparedStatement.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    student.setId(generatedKeys.getInt(1));
+                }
+                isAdded = true;
+                System.out.println("Student added successfully with ID: " + student.getId());
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error adding student: " + e.getMessage());
+            throw e;
+        } finally {
+            if (preparedStatement != null) preparedStatement.close();
+            DBConnection.closeConnection(connection);
+        }
+        
+        return isAdded;
+    }
+    
+    @Override
+    public Student getStudentById(int id) throws SQLException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        Student student = null;
+        
+        try {
+            connection = DBConnection.getConnection();
+            preparedStatement = connection.prepareStatement(SELECT_STUDENT_BY_ID);
+            preparedStatement.setInt(1, id);
+            
+            resultSet = preparedStatement.executeQuery();
+            
+            if (resultSet.next()) {
+                student = extractStudentFromResultSet(resultSet);
+                System.out.println("Student found: " + student.getName());
+            } else {
+                System.out.println("No student found with ID: " + id);
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting student by ID: " + e.getMessage());
+            throw e;
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (preparedStatement != null) preparedStatement.close();
+            DBConnection.closeConnection(connection);
+        }
+        
+        return student;
+    }
+    
+    @Override
+    public List<Student> getAllStudents() throws SQLException {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        List<Student> students = new ArrayList<>();
+        
+        try {
+            connection = DBConnection.getConnection();
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(SELECT_ALL_STUDENTS);
+            
+            while (resultSet.next()) {
+                Student student = extractStudentFromResultSet(resultSet);
+                students.add(student);
+            }
+            
+            System.out.println("Retrieved " + students.size() + " students");
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting all students: " + e.getMessage());
+            throw e;
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (statement != null) statement.close();
+            DBConnection.closeConnection(connection);
+        }
+        
+        return students;
+    }
+    
+    @Override
+    public boolean updateStudent(Student student) throws SQLException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        boolean isUpdated = false;
+        
+        try {
+            connection = DBConnection.getConnection();
+            preparedStatement = connection.prepareStatement(UPDATE_STUDENT);
+            
+            preparedStatement.setString(1, student.getName());
+            preparedStatement.setString(2, student.getEmail());
+            preparedStatement.setString(3, student.getCourse());
+            preparedStatement.setInt(4, student.getAge());
+            preparedStatement.setInt(5, student.getId());
+            
+            int rowsAffected = preparedStatement.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                isUpdated = true;
+                System.out.println("Student updated successfully: " + student.getName());
+            } else {
+                System.out.println("No student found to update with ID: " + student.getId());
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error updating student: " + e.getMessage());
+            throw e;
+        } finally {
+            if (preparedStatement != null) preparedStatement.close();
+            DBConnection.closeConnection(connection);
+        }
+        
+        return isUpdated;
+    }
+    
+    @Override
+    public boolean deleteStudent(int id) throws SQLException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        boolean isDeleted = false;
+        
+        try {
+            connection = DBConnection.getConnection();
+            preparedStatement = connection.prepareStatement(DELETE_STUDENT);
+            preparedStatement.setInt(1, id);
+            
+            int rowsAffected = preparedStatement.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                isDeleted = true;
+                System.out.println("Student deleted successfully with ID: " + id);
+            } else {
+                System.out.println("No student found to delete with ID: " + id);
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error deleting student: " + e.getMessage());
+            throw e;
+        } finally {
+            if (preparedStatement != null) preparedStatement.close();
+            DBConnection.closeConnection(connection);
+        }
+        
+        return isDeleted;
+    }
+    
+    @Override
+    public List<Student> searchStudentsByName(String name) throws SQLException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        List<Student> students = new ArrayList<>();
+        
+        try {
+            connection = DBConnection.getConnection();
+            preparedStatement = connection.prepareStatement(SEARCH_STUDENTS_BY_NAME);
+            preparedStatement.setString(1, "%" + name + "%");
+            
+            resultSet = preparedStatement.executeQuery();
+            
+            while (resultSet.next()) {
+                Student student = extractStudentFromResultSet(resultSet);
+                students.add(student);
+            }
+            
+            System.out.println("Found " + students.size() + " students matching: " + name);
+            
+        } catch (SQLException e) {
+            System.err.println("Error searching students: " + e.getMessage());
+            throw e;
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (preparedStatement != null) preparedStatement.close();
+            DBConnection.closeConnection(connection);
+        }
+        
+        return students;
+    }
+    
+    @Override
+    public List<Student> getStudentsByCourse(String course) throws SQLException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        List<Student> students = new ArrayList<>();
+        
+        try {
+            connection = DBConnection.getConnection();
+            preparedStatement = connection.prepareStatement(SELECT_STUDENTS_BY_COURSE);
+            preparedStatement.setString(1, course);
+            
+            resultSet = preparedStatement.executeQuery();
+            
+            while (resultSet.next()) {
+                Student student = extractStudentFromResultSet(resultSet);
+                students.add(student);
+            }
+            
+            System.out.println("Found " + students.size() + " students in course: " + course);
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting students by course: " + e.getMessage());
+            throw e;
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (preparedStatement != null) preparedStatement.close();
+            DBConnection.closeConnection(connection);
+        }
+        
+        return students;
+    }
+    
+    @Override
+    public boolean isEmailExists(String email) throws SQLException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        boolean exists = false;
+        
+        try {
+            connection = DBConnection.getConnection();
+            preparedStatement = connection.prepareStatement(CHECK_EMAIL_EXISTS);
+            preparedStatement.setString(1, email);
+            
+            resultSet = preparedStatement.executeQuery();
+            
+            if (resultSet.next()) {
+                exists = resultSet.getInt(1) > 0;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error checking email existence: " + e.getMessage());
+            throw e;
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (preparedStatement != null) preparedStatement.close();
+            DBConnection.closeConnection(connection);
+        }
+        
+        return exists;
+    }
+    
+    @Override
+    public int getTotalStudentCount() throws SQLException {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        int count = 0;
+        
+        try {
+            connection = DBConnection.getConnection();
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(COUNT_STUDENTS);
+            
+            if (resultSet.next()) {
+                count = resultSet.getInt(1);
+            }
+            
+            System.out.println("Total students: " + count);
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting student count: " + e.getMessage());
+            throw e;
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (statement != null) statement.close();
+            DBConnection.closeConnection(connection);
+        }
+        
+        return count;
+    }
+    
+    // Helper method to extract Student object from ResultSet
+    private Student extractStudentFromResultSet(ResultSet resultSet) throws SQLException {
+        Student student = new Student();
+        student.setId(resultSet.getInt("id"));
+        student.setName(resultSet.getString("name"));
+        student.setEmail(resultSet.getString("email"));
+        student.setCourse(resultSet.getString("course"));
+        student.setAge(resultSet.getInt("age"));
+        student.setCreatedAt(resultSet.getTimestamp("created_at"));
+        student.setUpdatedAt(resultSet.getTimestamp("updated_at"));
+        return student;
+    }
+}
+```
+
+---
+
+#### FILE 5: AddStudentServlet.java
+
+**Location:** `src/main/java/com/controller/AddStudentServlet.java`
+
+**How to create:**
+```
+Right-click on 'com.controller' package → New → Servlet
+Class Name: AddStudentServlet
+URL Mapping: /addStudent
+Click Finish
+Replace ALL code with:
+javapackage com.controller;
+
+import com.dao.StudentDAO;
+import com.dao.StudentDAOImpl;
+import com.model.Student;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+
+@WebServlet("/addStudent")
+public class AddStudentServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    
+    private StudentDAO studentDAO;
+    
+    @Override
+    public void init() throws ServletException {
+        studentDAO = new StudentDAOImpl();
+    }
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.getRequestDispatcher("add-student.jsp").forward(request, response);
+    }
+    
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        String name = request.getParameter("name");
+        String email = request.getParameter("email");
+        String course = request.getParameter("course");
+        String ageStr = request.getParameter("age");
+        
+        if (name == null || name.trim().isEmpty() ||
+            email == null || email.trim().isEmpty() ||
+            course == null || course.trim().isEmpty() ||
+            ageStr == null || ageStr.trim().isEmpty()) {
+            
+            request.setAttribute("error", "All fields are required!");
+            request.getRequestDispatcher("add-student.jsp").forward(request, response);
+            return;
+        }
+        
+        try {
+            int age = Integer.parseInt(ageStr);
+            
+            if (age < 15 || age > 100) {
+                request.setAttribute("error", "Age must be between 15 and 100!");
+                request.getRequestDispatcher("add-student.jsp").forward(request, response);
+                return;
+            }
+            
+            if (studentDAO.isEmailExists(email)) {
+                request.setAttribute("error", "Email already exists!");
+                request.getRequestDispatcher("add-student.jsp").forward(request, response);
+                return;
+            }
+            
+            Student student = new Student(name, email, course, age);
+            boolean isAdded = studentDAO.addStudent(student);
+            
+            if (isAdded) {
+                request.setAttribute("success", "Student added successfully!");
+                response.sendRedirect("viewStudents");
+            } else {
+                request.setAttribute("error", "Failed to add student!");
+                request.getRequestDispatcher("add-student.jsp").forward(request, response);
+            }
+            
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Invalid age format!");
+            request.getRequestDispatcher("add-student.jsp").forward(request, response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Database error: " + e.getMessage());
+            request.getRequestDispatcher("add-student.jsp").forward(request, response);
+        }
+    }
+}
+```
+
+---
+
+#### FILE 6: ViewStudentsServlet.java
+
+**Location:** `src/main/java/com/controller/ViewStudentsServlet.java`
+```
+Right-click on 'com.controller' package → New → Servlet
+Class Name: ViewStudentsServlet
+URL Mapping: /viewStudents
+Click Finish
+Replace ALL code with:
+javapackage com.controller;
+
+import com.dao.StudentDAO;
+import com.dao.StudentDAOImpl;
+import com.model.Student;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
+@WebServlet("/viewStudents")
+public class ViewStudentsServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    
+    private StudentDAO studentDAO;
+    
+    @Override
+    public void init() throws ServletException {
+        studentDAO = new StudentDAOImpl();
+    }
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        try {
+            String searchName = request.getParameter("search");
+            String filterCourse = request.getParameter("course");
+            
+            List<Student> students;
+            
+            if (searchName != null && !searchName.trim().isEmpty()) {
+                students = studentDAO.searchStudentsByName(searchName);
+                request.setAttribute("searchQuery", searchName);
+            } else if (filterCourse != null && !filterCourse.trim().isEmpty()) {
+                students = studentDAO.getStudentsByCourse(filterCourse);
+                request.setAttribute("filterCourse", filterCourse);
+            } else {
+                students = studentDAO.getAllStudents();
+            }
+            
+            int totalCount = studentDAO.getTotalStudentCount();
+            
+            request.setAttribute("students", students);
+            request.setAttribute("totalCount", totalCount);
+            
+            request.getRequestDispatcher("view-students.jsp").forward(request, response);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Database error: " + e.getMessage());
+            request.getRequestDispatcher("view-students.jsp").forward(request, response);
+        }
+    }
+}
+```
+
+---
+
+#### FILE 7: EditStudentServlet.java
+
+**Location:** `src/main/java/com/controller/EditStudentServlet.java`
+```
+Right-click on 'com.controller' package → New → Servlet
+Class Name: EditStudentServlet
+URL Mapping: /editStudent
+Click Finish
+Replace ALL code with:
+javapackage com.controller;
+
+import com.dao.StudentDAO;
+import com.dao.StudentDAOImpl;
+import com.model.Student;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+
+@WebServlet("/editStudent")
+public class EditStudentServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    
+    private StudentDAO studentDAO;
+    
+    @Override
+    public void init() throws ServletException {
+        studentDAO = new StudentDAOImpl();
+    }
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        String idStr = request.getParameter("id");
+        
+        if (idStr == null || idStr.trim().isEmpty()) {
+            response.sendRedirect("viewStudents");
+            return;
+        }
+        
+        try {
+            int id = Integer.parseInt(idStr);
+            Student student = studentDAO.getStudentById(id);
+            
+            if (student != null) {
+                request.setAttribute("student", student);
+                request.getRequestDispatcher("edit-student.jsp").forward(request, response);
+            } else {
+                request.setAttribute("error", "Student not found!");
+                response.sendRedirect("viewStudents");
+            }
+            
+        } catch (NumberFormatException e) {
+            response.sendRedirect("viewStudents");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Database error: " + e.getMessage());
+            response.sendRedirect("viewStudents");
+        }
+    }
+}
+```
+
+---
+
+#### FILE 8: UpdateStudentServlet.java
+
+**Location:** `src/main/java/com/controller/UpdateStudentServlet.java`
+```
+Right-click on 'com.controller' package → New → Servlet
+Class Name: UpdateStudentServlet
+URL Mapping: /updateStudent
+Click Finish
+Replace ALL code with:
+javapackage com.controller;
+
+import com.dao.StudentDAO;
+import com.dao.StudentDAOImpl;
+import com.model.Student;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+
+@WebServlet("/updateStudent")
+public class UpdateStudentServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    
+    private StudentDAO studentDAO;
+    
+    @Override
+    public void init() throws ServletException {
+        studentDAO = new StudentDAOImpl();
+    }
+    
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        String idStr = request.getParameter("id");
+        String name = request.getParameter("name");
+        String email = request.getParameter("email");
+        String course = request.getParameter("course");
+        String ageStr = request.getParameter("age");
+        
+        if (idStr == null || name == null || name.trim().isEmpty() ||
+            email == null || email.trim().isEmpty() ||
+            course == null || course.trim().isEmpty() ||
+            ageStr == null || ageStr.trim().isEmpty()) {
+            
+            request.setAttribute("error", "All fields are required!");
+            request.getRequestDispatcher("edit-student.jsp").forward(request, response);
+            return;
+        }
+        
+        try {
+            int id = Integer.parseInt(idStr);
+            int age = Integer.parseInt(ageStr);
+            
+            if (age < 15 || age > 100) {
+                request.setAttribute("error", "Age must be between 15 and 100!");
+                Student student = new Student(id, name, email, course, age);
+                request.setAttribute("student", student);
+                request.getRequestDispatcher("edit-student.jsp").forward(request, response);
+                return;
+            }
+            
+            Student student = new Student(id, name, email, course, age);
+            boolean isUpdated = studentDAO.updateStudent(student);
+            
+            if (isUpdated) {
+                response.sendRedirect("viewStudents?success=Student updated successfully");
+            } else {
+                request.setAttribute("error", "Failed to update student!");
+                request.setAttribute("student", student);
+                request.getRequestDispatcher("edit-student.jsp").forward(request, response);
+            }
+            
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Invalid input format!");
+            request.getRequestDispatcher("edit-student.jsp").forward(request, response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Database error: " + e.getMessage());
+            request.getRequestDispatcher("edit-student.jsp").forward(request, response);
+        }
+    }
+}
+```
+
+---
+
+#### FILE 9: DeleteStudentServlet.java
+
+**Location:** `src/main/java/com/controller/DeleteStudentServlet.java`
+```
+Right-click on 'com.controller' package → New → Servlet
+Class Name: DeleteStudentServlet
+URL Mapping: /deleteStudent
+Click Finish
+Replace ALL code with:
+javapackage com.controller;
+
+import com.dao.StudentDAO;
+import com.dao.StudentDAOImpl;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+
+@WebServlet("/deleteStudent")
+public class DeleteStudentServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    
+    private StudentDAO studentDAO;
+    
+    @Override
+    public void init() throws ServletException {
+        studentDAO = new StudentDAOImpl();
+    }
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        String idStr = request.getParameter("id");
+        
+        if (idStr == null || idStr.trim().isEmpty()) {
+            response.sendRedirect("viewStudents");
+            return;
+        }
+        
+        try {
+            int id = Integer.parseInt(idStr);
+            boolean isDeleted = studentDAO.deleteStudent(id);
+            
+            if (isDeleted) {
+                response.sendRedirect("viewStudents?success=Student deleted successfully");
+            } else {
+                response.sendRedirect("viewStudents?error=Failed to delete student");
+            }
+            
+        } catch (NumberFormatException e) {
+            response.sendRedirect("viewStudents?error=Invalid student ID");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.sendRedirect("viewStudents?error=Database error");
+        }
+    }
+    
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doGet(request, response);
+    }
+}
+```
+
+---
+
+### STEP 5: Create JSP Files
+
+Now create JSP pages in WebContent folder.
+
+#### FILE 10: index.jsp
+
+**Location:** `WebContent/index.jsp`
+
+**How to create:**
+```
+Right-click on 'WebContent' → New → JSP File
+File Name: index.jsp
+Click Finish
+Replace ALL code with:
+jsp<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 600px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            margin-top: 40px;
+            text-align: left;
+        }
+        
+        .feature-item {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .feature-item h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Student Management System</h1>
+        <p>Manage student records with CRUD operations using JDBC</p>
+        
+        <div class="btn-group">
+            <a href="viewStudents" class="btn btn-primary">View All Students</a>
+            <a href="addStudent" class="btn btn-success">Add New Student</a>
+        </div>
+        
+        <div class="features">
+            <h2>Features:</h2>
+            <div class="feature-item">
+                <h3>✓ Create</h3>
+                <p>Add new student records to the database</p>
+            </div>
+            <div class="feature-item">
+                <h3>✓ Read</h3>
+                <p>View and search student information</p>
+            </div>
+            <div class="feature-item">
+                <h3>✓ Update</h3>
+                <p>Edit existing student records</p>
+            </div>
+            <div class="feature-item">
+                <h3>✓ Delete</h3>
+                <p>Remove student records from the system</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+```
+
+---
+
+#### FILE 11: add-student.jsp
+
+**Location:** `WebContent/add-student.jsp`
+```
+Right-click on 'WebContent' → New → JSP File
+File Name: add-student.jsp
+Click Finish
+Replace ALL code with:
+jsp<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Student</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            line-height: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add New Student</h1>
+        
+        <% String error = (String) request.getAttribute("error"); %>
+        <% if (error != null) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        
+        <% String success = (String) request.getAttribute("success"); %>
+        <% if (success != null) { %>
+            <div class="alert alert-success"><%= success %></div>
+        <% } %>
+        
+        <form action="addStudent" method="post">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required 
+                       placeholder="Enter student name">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="student@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="course">Course *</label>
+                <select id="course" name="course" required>
+                    <option value="">Select a course</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Business">Business</option>
+                    <option value="Arts">Arts</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="age">Age *</label>
+                <input type="number" id="age" name="age" required 
+                       min="15" max="100" placeholder="Enter age">
+            </div>
+            
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">Add Student</button>
+                <a href="viewStudents" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+---
+
+#### FILE 12: view-students.jsp
+
+**Location:** `WebContent/view-students.jsp`
+```
+Right-click on 'WebContent' → New → JSP File
+File Name: view-students.jsp
+Click Finish
+Copy this code:
+jsp<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.List" %>
+<%@ page import="com.model.Student" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Students</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1em;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.9em;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .info-bar {
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.2em;
+        }
+    </style>
+    <script>
+        function confirmDelete(id, name) {
+            if (confirm('Are you sure you want to delete student "' + name + '"?')) {
+                window.location.href = 'deleteStudent?id=' + id;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Student List</h1>
+        
+        <% String error = request.getParameter("error"); %>
+        <% if (error != null) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        
+        <% String success = request.getParameter("success"); %>
+        <% if (success != null) { %>
+            <div class="alert alert-success"><%= success %></div>
+        <% } %>
+        
+        <div class="header-section">
+            <form action="viewStudents" method="get" class="search-box">
+                <input type="text" name="search" 
+                       placeholder="Search by name..." 
+                       value="<%= request.getAttribute("searchQuery") != null ? request.getAttribute("searchQuery") : "" %>">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a href="viewStudents" class="btn btn-warning">Clear</a>
+            </form>
+            <a href="addStudent" class="btn btn-success">+ Add New Student</a>
+            <a href="index.jsp" class="btn btn-primary">Home</a>
+        </div>
+        
+        <% Integer totalCount = (Integer) request.getAttribute("totalCount"); %>
+        <% if (totalCount != null) { %>
+            <div class="info-bar">
+                Total Students: <strong><%= totalCount %></strong>
+            </div>
+        <% } %>
+        
+        <%
+            List<Student> students = (List<Student>) request.getAttribute("students");
+            if (students != null && !students.isEmpty()) {
+        %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Course</th>
+                        <th>Age</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <%
+                        for (Student student : students) {
+                    %>
+                        <tr>
+                            <td><%= student.getId() %></td>
+                            <td><%= student.getName() %></td>
+                            <td><%= student.getEmail() %></td>
+                            <td><%= student.getCourse() %></td>
+                            <td><%= student.getAge() %></td>
+                            <td><%= student.getCreatedAt() %></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="editStudent?id=<%= student.getId() %>" 
+                                       class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="javascript:confirmDelete(<%= student.getId() %>, '<%= student.getName() %>')" 
+                                       class="btn btn-danger btn-sm">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    <%
+                        }
+                    %>
+                </tbody>
+            </table>
+        <%
+            } else {
+        %>
+            <div class="no-data">
+                📚 No students found. <a href="addStudent">Add your first student</a>
+            </div>
+        <%
+            }
+        %>
+    </div>
+</body>
+</html>
+```
+
+---
+
+#### FILE 13: edit-student.jsp
+
+**Location:** `WebContent/edit-student.jsp`
+```
+Right-click on 'WebContent' → New → JSP File
+File Name: edit-student.jsp
+Click Finish
+Copy this code:
+jsp<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="com.model.Student" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        input[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            line-height: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Student</h1>
+        
+        <% String error = (String) request.getAttribute("error"); %>
+        <% if (error != null) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        
+        <% Student student = (Student) request.getAttribute("student"); %>
+        <% if (student != null) { %>
+            <form action="updateStudent" method="post">
+                <input type="hidden" name="id" value="<%= student.getId() %>">
+                
+                <div class="form-group">
+                    <label for="id">Student ID</label>
+                    <input type="text" id="id" value="<%= student.getId() %>" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required 
+                           value="<%= student.getName() %>" placeholder="Enter student name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required 
+                           value="<%= student.getEmail() %>" placeholder="student@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="course">Course *</label>
+                    <select id="course" name="course" required>
+                        <option value="">Select a course</option>
+                        <option value="Computer Science" <%= "Computer Science".equals(student.getCourse()) ? "selected" : "" %>>Computer Science</option>
+                        <option value="Engineering" <%= "Engineering".equals(student.getCourse()) ? "selected" : "" %>>Engineering</option>
+                        <option value="Mathematics" <%= "Mathematics".equals(student.getCourse()) ? "selected" : "" %>>Mathematics</option>
+                        <option value="Physics" <%= "Physics".equals(student.getCourse()) ? "selected" : "" %>>Physics</option>
+                        <option value="Chemistry" <%= "Chemistry".equals(student.getCourse()) ? "selected" : "" %>>Chemistry</option>
+                        <option value="Biology" <%= "Biology".equals(student.getCourse()) ? "selected" : "" %>>Biology</option>
+                        <option value="Business" <%= "Business".equals(student.getCourse()) ? "selected" : "" %>>Business</option>
+                        <option value="Arts" <%= "Arts".equals(student.getCourse()) ? "selected" : "" %>>Arts</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="age">Age *</label>
+                    <input type="number" id="age" name="age" required 
+                           min="15" max="100" value="<%= student.getAge() %>" placeholder="Enter age">
+                </div>
+                
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-warning">Update Student</button>
+                    <a href="viewStudents" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        <% } %>
+    </div>
+</body>
+</html>
+```
+
+---
+
+## Part 4: Running the Application
+
+### Step 1: Test Database Connection First
+
+1. **Right-click on `DBConnection.java`**
+2. **Run As → Java Application**
+3. **Check Console** - You should see:
+```
+   MySQL JDBC Driver loaded successfully
+   Database connection established
+   ✓ Connection test successful!
+   Database connection closed
+```
+
+**If you see errors**, check:
+- MySQL is running
+- Database name is correct
+- Username/password are correct
+- MySQL Connector JAR is added
+
+---
+
+### Step 2: Configure Tomcat in Eclipse
+
+1. **Window → Show View → Servers**
+2. **Right-click in Servers panel → New → Server**
+3. **Select Apache Tomcat v9.0**
+4. **Click Next → Add your project → Finish**
+
+---
+
+### Step 3: Run the Application
+
+1. **Right-click on project → Run As → Run on Server**
+2. **Select Tomcat server**
+3. **Click Finish**
+
+4. **Browser should open automatically with:**
+```
+   http://localhost:8080/StudentManagementSystem/
+
+Part 5: Testing All Features
+Test 1: View Students
+
+Click "View All Students"
+Should show 4 sample students
+
+Test 2: Add Student
+
+Click "Add New Student"
+Fill the form
+Submit
+Should redirect to student list
+
+Test 3: Search
+
+Type name in search box
+Click Search
+
+Test 4: Edit
+
+Click Edit button on any student
+Change details
+Click Update
+
+Test 5: Delete
+
+Click Delete button
+Confirm deletion
+
+
+Common Issues and Solutions
+Issue 1: ClassNotFoundException for MySQL Driver
+Solution:
+
+Make sure mysql-connector-j-8.0.33.jar is in WebContent/WEB-INF/lib/
+Right-click project → Properties → Java Build Path → Libraries → Add JARs → Select the JAR
+
+Issue 2: Connection refused
+Solution:
+
+Start MySQL service
+Check port 3306 is correct
+Verify username/password in DBConnection.java
+
+Issue 3: 404 Error
+Solution:
+
+Check URL: http://localhost:8080/StudentManagementSystem/
+Clean project: Project → Clean
+Restart Tomcat
+
+Issue 4: Servlet not found
+Solution:
+
+Check @WebServlet annotations
+Clean and rebuild project
+
+
+Summary
+You now have a complete MVC web application with:
+
+✅ Model (Student.java)
+✅ DAO Pattern (StudentDAO, StudentDAOImpl)
+✅ Controller (5 Servlets)
+✅ View (4 JSP pages)
+✅ Database Utility (DBConnection)
+✅ CRUD Operations
+✅ Search functionality
+✅ Beautiful UI
